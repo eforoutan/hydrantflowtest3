@@ -4,1102 +4,955 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Hydrant Flow Test Summary Sheet</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet">
+  <!-- Load elevations from separate file — update elevations.js independently -->
+  <script src="elevations.js"></script>
   <style>
     :root {
-      --ink: #1a1a22;
-      --ink-mid: #3d3d4e;
-      --ink-muted: #6b6b80;
-      --ink-faint: #9898aa;
-      --rule: #d0cfda;
-      --rule-strong: #9898aa;
-      --bg: #f7f6f2;
+      --yellow: #fffacd;
+      --gray: #e8eaed;
+      --line: #b0b8c4;
+      --line-strong: #3a4a5c;
       --paper: #ffffff;
-      --accent: #1a3a6b;
-      --accent-mid: #2d5fa8;
-      --accent-light: #e8eef7;
-      --accent-xlight: #f2f5fb;
-      --yellow-fill: #fdfbe8;
-      --yellow-border: #e8e29a;
-      --gray-fill: #f0eff5;
-      --gray-border: #c8c7d4;
-      --teal: #0e6e70;
-      --teal-light: #e4f3f3;
-      --shadow: 0 1px 3px rgba(26,26,34,0.08), 0 4px 16px rgba(26,26,34,0.06);
+      --ink: #1a2333;
+      --blue: #1b46ff;
+      --accent: #0d3b8c;
+      --banner-bg: #dce8f8;
+      --banner-text: #0d3b8c;
+      --header-bg: #0d3b8c;
+      --header-text: #ffffff;
+      --btn-bg: #f0f4f8;
+      --btn-border: #b0bec5;
+      --btn-hover: #e2ecf6;
+      --shadow: 0 2px 16px rgba(13,59,140,0.10);
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
+    * { box-sizing: border-box; }
     body {
-      font-family: 'DM Sans', sans-serif;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
       color: var(--ink);
-      background: var(--bg);
-      -webkit-font-smoothing: antialiased;
-      font-size: 13px;
-      line-height: 1.4;
+      background: #dce8f8;
     }
-
-    .screen-only {
-      padding: 24px 20px 40px;
-    }
-
-    .page-wrap {
-      max-width: 1100px;
-      margin: 0 auto;
+    .page {
+      width: min(1380px, calc(100vw - 32px));
+      margin: 18px auto;
       background: var(--paper);
+      padding: 18px 22px 24px;
       box-shadow: var(--shadow);
       border-radius: 4px;
-      overflow: hidden;
+      border-top: 4px solid var(--accent);
     }
 
-    /* ── TOOLBAR ── */
-    .toolbar {
-      background: var(--accent);
-      padding: 11px 22px;
+    /* ── HEADER BAND ─────────────────────────────────────── */
+    .page-header {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 16px;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 10px;
     }
-    .toolbar-brand {
-      font-family: 'DM Serif Display', serif;
-      font-size: 14px;
-      color: rgba(255,255,255,0.7);
+    .logo-area {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-area img {
+      height: 46px;
+      width: auto;
+      display: block;
+    }
+    /* Fallback placeholder shown when no img src */
+    .logo-placeholder {
+      height: 46px;
+      width: 140px;
+      background: #e8edf5;
+      border: 1.5px dashed #b0bec5;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #8097b1;
+      font-style: italic;
       letter-spacing: 0.02em;
     }
-    .toolbar-actions { display: flex; gap: 8px; }
-    .btn {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 12px;
-      font-weight: 500;
-      padding: 6px 14px;
-      border-radius: 3px;
-      cursor: pointer;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: rgba(255,255,255,0.1);
-      color: rgba(255,255,255,0.9);
-      letter-spacing: 0.03em;
-      transition: background 0.15s;
+    .page-title-area {
+      flex: 1 1 auto;
+      text-align: center;
     }
-    .btn:hover { background: rgba(255,255,255,0.2); }
-    .btn-primary {
-      background: rgba(255,255,255,0.22);
-      border-color: rgba(255,255,255,0.5);
-      color: #fff;
-    }
-    .btn-primary:hover { background: rgba(255,255,255,0.32); }
-
-    /* ── HEADER ── */
-    .doc-header {
-      padding: 20px 24px 0;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: start;
-      border-bottom: 2px solid var(--accent);
-      padding-bottom: 14px;
-    }
-    .doc-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 21px;
+    h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 700;
       color: var(--accent);
-      letter-spacing: 0.01em;
-      line-height: 1.1;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
     }
-    .doc-subtitle {
-      font-size: 11px;
-      color: var(--ink-muted);
-      margin-top: 3px;
+    .toolbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      border-radius: 5px;
+      padding: 6px 13px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--accent);
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .action-btn:hover { background: var(--btn-hover); border-color: var(--accent); }
+    .action-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .action-btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .action-btn.primary:hover { background: #0a2f70; }
+
+    /* ── TABLE ───────────────────────────────────────────── */
+    .section-banner {
+      background: var(--banner-bg);
+      color: var(--banner-text);
+      font-weight: 700;
+      text-align: left;
+      padding: 5px 10px !important;
+      font-size: 12px;
       letter-spacing: 0.04em;
       text-transform: uppercase;
     }
-    .doc-badge {
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      color: var(--ink-muted);
-      text-align: right;
-      line-height: 1.6;
+    .hint {
+      color: #5b6470;
+      font-size: 12px;
+      margin-top: 6px;
     }
-
-    /* ── META FIELDS (top inputs) ── */
-    .meta-section {
-      padding: 14px 24px 0;
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 0;
-      border-bottom: 1px solid var(--rule);
-    }
-    .meta-field {
-      padding: 8px 16px 10px 0;
-      border-right: 1px solid var(--rule);
-    }
-    .meta-field:last-child { border-right: none; padding-left: 16px; padding-right: 0; }
-    .meta-field:first-child { padding-left: 0; }
-    .meta-field:nth-child(2) { padding-left: 16px; }
-    .meta-label {
-      font-size: 9.5px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--ink-faint);
-      margin-bottom: 4px;
-    }
-    .meta-input {
-      width: 100%;
-      border: none;
-      outline: none;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--ink);
-      background: transparent;
-      border-bottom: 1px solid var(--rule);
-      padding: 2px 0 3px;
-      transition: border-color 0.15s;
-    }
-    .meta-input:focus { border-bottom-color: var(--accent-mid); }
-
-    .datetime-row {
-      display: flex;
-      gap: 12px;
-    }
-    .datetime-row input {
-      border: none;
-      outline: none;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      color: var(--ink);
-      background: transparent;
-      border-bottom: 1px solid var(--rule);
-      padding: 2px 0 3px;
-      transition: border-color 0.15s;
-    }
-    .datetime-row input:focus { border-bottom-color: var(--accent-mid); }
-    .datetime-row input[type="date"] { flex: 1.3; }
-    .datetime-row input[type="time"] { flex: 1; }
-
-
-
-    /* ── MAIN TABLE ── */
-    .table-wrap { padding: 0 24px; overflow-x: auto; }
-
-    table.flow-table {
+    table.flow-sheet {
       width: 100%;
       border-collapse: collapse;
-      font-size: 12px;
       table-layout: fixed;
+      font-size: 12.5px;
     }
-
-    .flow-table th, .flow-table td {
-      padding: 0;
+    .flow-sheet td, .flow-sheet th {
+      border: 1px solid var(--line);
+      padding: 3px 6px;
+      height: 26px;
       vertical-align: middle;
     }
-
-    /* Column groups */
-    .col-label { width: 190px; }
-    .col-data { }
-    .col-total { width: 82px; }
-    .col-unit { width: 40px; }
-    .col-note { width: 94px; }
-
-    /* Header row */
-    .flow-table .th-row th {
-      padding: 10px 8px 8px;
-      font-size: 10px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.07em;
-      color: var(--accent);
-      border-bottom: 2px solid var(--accent);
-      text-align: center;
-      background: var(--accent-xlight);
+    .flow-sheet .no-border {
+      border: none !important;
+      background: transparent !important;
     }
-    .flow-table .th-row th.th-label {
-      text-align: left;
-      background: transparent;
-      border-bottom: 2px solid var(--accent);
-      color: var(--ink-muted);
-    }
-    .flow-table .th-row th.th-total {
-      background: var(--accent);
-      color: rgba(255,255,255,0.9);
-    }
-    .flow-table .th-row th.th-unit,
-    .flow-table .th-row th.th-note {
-      background: transparent;
-      border-bottom: 2px solid var(--accent);
-      color: transparent;
-    }
-
-    /* Data rows */
-    .flow-table .data-row td {
-      border-bottom: 1px solid var(--rule);
-      height: 30px;
-    }
-    .flow-table .data-row td.td-label {
-      font-size: 11.5px;
-      color: var(--ink-mid);
-      padding: 0 10px 0 0;
+    .flow-sheet .label {
+      width: 240px;
       text-align: right;
-      font-weight: 400;
-      white-space: nowrap;
-    }
-    .flow-table .data-row td.td-input {
-      background: var(--yellow-fill);
-      border-left: 1px solid var(--yellow-border);
-      border-right: 1px solid var(--yellow-border);
-      padding: 0 6px;
-      text-align: center;
-    }
-    .flow-table .data-row td.td-calc {
-      background: var(--gray-fill);
-      border-left: 1px solid var(--gray-border);
-      border-right: 1px solid var(--gray-border);
-      padding: 0 6px;
-      text-align: center;
-      color: var(--ink-mid);
-      font-family: 'DM Mono', monospace;
-      font-size: 11.5px;
-    }
-    .flow-table .data-row td.td-total {
-      background: var(--accent-light);
-      border-left: 2px solid var(--accent-mid);
-      border-right: 1px solid var(--gray-border);
-      padding: 0 6px;
-      text-align: center;
-      color: var(--accent);
-      font-family: 'DM Mono', monospace;
+      border-left: none;
+      background: white;
       font-size: 12px;
-      font-weight: 500;
+      color: #3a4a5c;
     }
-    .flow-table .data-row td.td-unit {
-      padding: 0 0 0 6px;
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--ink-faint);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+    .flow-sheet .label.section-top {
+      border-top: 2px solid var(--line-strong);
     }
-    .flow-table .data-row td.td-note {
-      padding: 0 0 0 6px;
-      font-size: 10px;
-      color: var(--ink-faint);
-      font-style: italic;
+    .flow-sheet .header-cell {
+      text-align: center;
+      font-weight: 700;
+      border-top: none;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 2px solid var(--line-strong);
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-size: 12px;
+      letter-spacing: 0.02em;
     }
-    .flow-table .data-row td.td-blank {
-      background: transparent;
+    .flow-sheet .subhead-total {
+      background: #1a5cb8;
+    }
+    .flow-sheet .input {
+      background: var(--yellow);
+    }
+    .flow-sheet .calc {
+      background: var(--gray);
+    }
+    .flow-sheet .center { text-align: center; }
+    .flow-sheet .unit {
+      width: 48px;
+      text-align: left;
       border-left: none;
       border-right: none;
-    }
-
-    /* Section separator */
-    .flow-table .section-row td {
-      height: 26px;
-      padding: 0;
-    }
-    .flow-table .section-row td.section-banner {
-      background: var(--accent);
-      color: rgba(255,255,255,0.92);
-      font-size: 9.5px;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      padding: 0 10px;
-    }
-
-    /* Spacer rows */
-    .flow-table .spacer-row td {
-      height: 6px;
-      background: transparent;
-      border: none;
-    }
-
-    /* Calc section */
-    .flow-table .calc-row td {
-      border-bottom: 1px solid var(--rule);
-      height: 28px;
-    }
-    .flow-table .calc-row td.td-label {
+      background: white;
+      padding-left: 4px;
       font-size: 11px;
-      color: var(--ink-mid);
-      padding: 0 10px 0 0;
-      text-align: right;
-      font-style: italic;
+      color: #5b6470;
     }
-
-    /* Inputs inside table */
-    .flow-table input {
+    .flow-sheet .note-inline {
+      width: 112px;
+      border-left: none;
+      border-right: none;
+      background: white;
+      font-style: italic;
+      font-size: 11px;
+      color: #7a8fa6;
+    }
+    .flow-sheet input {
       width: 100%;
       border: none;
       outline: none;
       background: transparent;
-      font-family: 'DM Mono', monospace;
-      font-size: 12px;
-      color: var(--ink);
-      text-align: center;
+      font: inherit;
+      color: inherit;
       padding: 0;
     }
-    .flow-table input:focus {
-      background: rgba(45, 95, 168, 0.06);
-    }
-
-    /* ── BOTTOM SECTION ── */
-    .bottom-grid {
-      display: grid;
-      grid-template-columns: 220px 1fr;
-      gap: 20px;
-      padding: 16px 24px 20px;
-    }
-
-    .notes-panel h4 {
-      font-size: 9.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--ink-faint);
-      margin-bottom: 8px;
-      padding-bottom: 5px;
-      border-bottom: 1px solid var(--rule);
-    }
-    .notes-panel p {
-      font-size: 10.5px;
-      color: var(--ink-mid);
-      line-height: 1.5;
-      margin-bottom: 5px;
-    }
-    .notes-panel .formula {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      color: var(--accent);
-      font-weight: 500;
-      display: block;
-      margin: 3px 0 5px;
-    }
-    .notes-panel .formula-label {
-      font-size: 10px;
-      color: var(--ink-faint);
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    /* ── CHART ── */
-    .chart-panel {
-      background: var(--paper);
-      border: 1px solid var(--rule);
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .chart-header {
-      background: var(--accent-xlight);
-      padding: 7px 12px;
-      font-size: 9.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.09em;
-      color: var(--accent);
-      border-bottom: 1px solid var(--rule);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .legend-item {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 9px; color: var(--ink-muted);
-      font-weight: 400; letter-spacing: 0.04em;
-      text-transform: none;
-    }
-    .legend-line { width: 18px; height: 2px; border-radius: 2px; }
-    .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
-
-    .chart-panel svg {
-      display: block;
+    .calc-readout {
       width: 100%;
-      height: 195px;
+      min-height: 18px;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
+    .top-lines { border-top: 1px solid var(--line); }
 
-    /* ── DISCLAIMER ── */
-    .disclaimer {
-      padding: 10px 24px 12px;
-      border-top: 1px solid var(--rule);
-      background: var(--accent-xlight);
+    /* ── BOTTOM SECTION ──────────────────────────────────── */
+    .bottom-flex {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 14px;
+      align-items: start;
+      margin-top: 10px;
     }
-    .disclaimer p {
-      font-size: 9px;
-      color: var(--ink-faint);
-      line-height: 1.6;
-      max-width: 100%;
-    }
-
-    /* ── FOOTER ── */
-    .doc-foot {
-      text-align: center;
-      padding: 8px;
-      font-size: 9px;
-      font-family: 'DM Mono', monospace;
-      color: var(--ink-faint);
-      letter-spacing: 0.05em;
-      border-top: 2px solid var(--accent);
-    }
-
-    /* ── SUBMIT STATUS ── */
-    .submit-status {
-      padding: 6px 24px;
+    .notes {
       font-size: 11px;
-      color: var(--ink-muted);
-      min-height: 22px;
+      line-height: 1.45;
+      padding-top: 10px;
+      color: #3a4a5c;
     }
-    .submit-status.error { color: #a32d2d; }
+    .notes h3 {
+      font-size: 12px;
+      margin: 0 0 5px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .notes p { margin: 3px 0; }
+    .notes .formula {
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      background: #f0f4f8;
+      padding: 2px 5px;
+      border-radius: 3px;
+      display: inline-block;
+      margin: 2px 0;
+    }
+    .disclaimer {
+      margin-top: 7px;
+      font-size: 10px;
+      font-style: italic;
+      border-top: 1px solid #b0bec5;
+      padding-top: 5px;
+      color: #5b6470;
+    }
+    .chart-card {
+      border: 1px solid var(--line-strong);
+      padding: 7px 8px 3px;
+      min-height: 270px;
+      background: #f8fafd;
+      border-radius: 3px;
+    }
+    svg {
+      width: 100%;
+      height: 225px;
+      display: block;
+    }
+    .foot {
+      text-align: center;
+      font-size: 11px;
+      color: #8097b1;
+      margin-top: 16px;
+      letter-spacing: 0.04em;
+    }
 
-    /* ── POPUP ── */
+    /* ── POPUP ───────────────────────────────────────────── */
     #submitPopup {
       display: none;
-      position: fixed; inset: 0;
-      background: rgba(26,26,34,0.4);
+      position: fixed;
+      inset: 0;
+      background: rgba(13,59,140,0.25);
       z-index: 9999;
       align-items: center;
       justify-content: center;
       padding: 16px;
     }
-    .popup-inner {
-      background: var(--paper);
-      width: min(400px, 100%);
-      border-radius: 6px;
-      box-shadow: 0 16px 48px rgba(26,26,34,0.25);
+    #submitPopup .popup-inner {
+      background: #fff;
+      width: min(420px, 100%);
+      border-radius: 8px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.2);
       overflow: hidden;
+      border-top: 3px solid var(--accent);
     }
-    .popup-header {
-      padding: 12px 16px;
-      font-size: 12px;
-      font-weight: 600;
-      background: var(--accent-xlight);
-      color: var(--accent);
-      letter-spacing: 0.04em;
-      text-transform: uppercase;
-    }
-    .popup-header.error { background: #fcebeb; color: #a32d2d; }
-    .popup-body {
-      padding: 18px 16px;
+    #submitPopupHeader {
+      padding: 11px 16px;
+      font-weight: 700;
+      background: var(--banner-bg);
+      color: var(--banner-text);
       font-size: 13px;
-      color: var(--ink-mid);
+      letter-spacing: 0.03em;
+    }
+    #submitPopupMessage {
+      padding: 16px;
+      font-size: 13.5px;
       line-height: 1.5;
+      color: #1a2333;
     }
-    .popup-footer {
-      padding: 0 16px 14px;
-      text-align: right;
-    }
-    .popup-ok {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 7px 18px;
-      border-radius: 3px;
-      border: 1px solid var(--rule-strong);
-      background: var(--paper);
-      color: var(--ink);
-      cursor: pointer;
-      transition: background 0.12s;
-    }
-    .popup-ok:hover { background: var(--bg); }
 
-    /* ── PRINT ── */
+    /* ── PRINT ───────────────────────────────────────────── */
     @media print {
-      @page { size: letter portrait; margin: 0.35in 0.35in; }
-
-      * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-
-      body { background: white !important; font-size: 11px !important; line-height: 1.3 !important; }
-      .screen-only { padding: 0 !important; }
-      .page-wrap { box-shadow: none !important; border-radius: 0 !important; max-width: 100% !important; width: 100% !important; }
-
-      /* hide chrome */
-      .toolbar { display: none !important; }
-      .flow-toggle { display: none !important; }
-      .submit-status { display: none !important; }
-
-      /* header — keep comfortable */
-      .doc-header { padding: 0 14px 10px !important; }
-      .doc-title { font-size: 18px !important; }
-      .doc-subtitle { font-size: 9px !important; margin-top: 2px !important; }
-      .doc-badge { font-size: 9px !important; }
-
-      /* meta fields */
-      .meta-section { padding: 8px 14px 0 !important; }
-      .meta-field { padding: 6px 12px 8px 0 !important; }
-      .meta-field:last-child { padding-left: 12px !important; }
-      .meta-field:nth-child(2) { padding-left: 12px !important; }
-      .meta-label { font-size: 8.5px !important; margin-bottom: 3px !important; }
-      .meta-input { font-size: 11px !important; }
-      .datetime-row input { font-size: 11px !important; }
-
-      /* table — sized to fill page width, rows taller to use vertical space */
-      .table-wrap { padding: 0 14px !important; overflow: visible !important; }
-      .flow-table { font-size: 10.5px !important; table-layout: fixed !important; width: 100% !important; }
-      .flow-table .col-label { width: 210px !important; }
-      .flow-table .col-total { width: 72px !important; }
-      .flow-table .col-unit { width: 32px !important; }
-      .flow-table .col-note { width: 60px !important; }
-      .flow-table .th-row th { font-size: 8.5px !important; padding: 7px 6px !important; }
-      .flow-table .data-row td { height: 22px !important; }
-      .flow-table .data-row td.td-label { font-size: 10px !important; padding-right: 8px !important; }
-      .flow-table .data-row td.td-calc { font-size: 10px !important; padding: 0 5px !important; }
-      .flow-table .data-row td.td-total { font-size: 10.5px !important; padding: 0 5px !important; }
-      .flow-table .data-row td.td-unit { font-size: 8px !important; padding-left: 4px !important; }
-      .flow-table .data-row td.td-note { font-size: 8px !important; padding-left: 4px !important; }
-      .flow-table .section-row td { height: 20px !important; }
-      .flow-table .section-row td.section-banner { font-size: 8px !important; padding: 0 8px !important; }
-      .flow-table .calc-row td { height: 21px !important; }
-      .flow-table .calc-row td.td-label { font-size: 10px !important; }
-      .flow-table input { font-size: 10px !important; }
-
-      /* bottom — chart gets generous height to fill remaining page */
-      .bottom-grid { padding: 10px 14px 10px !important; gap: 12px !important; grid-template-columns: 185px 1fr !important; }
-      .notes-panel h4 { font-size: 8.5px !important; margin-bottom: 6px !important; padding-bottom: 4px !important; }
-      .notes-panel p { font-size: 8.5px !important; margin-bottom: 3px !important; line-height: 1.45 !important; }
-      .notes-panel .formula { font-size: 10px !important; margin: 2px 0 4px !important; }
-      .notes-panel .formula-label { font-size: 8px !important; }
-
-      /* chart — tall to fill the page */
-      .chart-panel { border-radius: 0 !important; }
-      .chart-header { padding: 6px 10px !important; font-size: 8px !important; }
-      .legend-item { font-size: 8px !important; }
-      .chart-panel svg { height: 210px !important; }
-
-      /* disclaimer */
-      .disclaimer { padding: 7px 14px 8px !important; margin-top: 8px !important; border-radius: 0 !important; }
-      .disclaimer p { font-size: 8px !important; line-height: 1.5 !important; }
-
-      /* footer */
-      .doc-foot { padding: 6px !important; font-size: 8px !important; }
+      @page { size: letter portrait; margin: 0.28in; }
+      body { background: white; }
+      .page {
+        width: 100%; margin: 0;
+        box-shadow: none;
+        padding: 6px 8px 8px;
+        border-radius: 0;
+        border-top: 3px solid var(--accent);
+      }
+      .toolbar { display: none; }
+      .page-header { margin-bottom: 8px; padding-bottom: 6px; }
+      .logo-area img { height: 36px; }
+      .logo-placeholder { height: 36px; width: 110px; }
+      h1 { font-size: 15px; }
+      table.flow-sheet { font-size: 11px; }
+      .flow-sheet td, .flow-sheet th { padding: 2px 5px; height: 22px; }
+      .flow-sheet .label { width: 200px; font-size: 11px; }
+      .flow-sheet .unit { width: 40px; }
+      .flow-sheet .note-inline { width: 90px; }
+      .bottom-flex {
+        grid-template-columns: 215px 1fr;
+        gap: 10px;
+        margin-top: 6px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .notes { font-size: 9.5px; line-height: 1.28; padding-top: 2px; }
+      .notes h3 { font-size: 10px; margin-bottom: 3px; }
+      .notes p { margin: 2px 0; }
+      .chart-card { min-height: 205px; padding: 4px 6px 2px; }
+      svg { height: 182px; }
+      .disclaimer { margin-top: 5px; font-size: 9px; }
+      .foot { margin-top: 8px; font-size: 9px; }
+      #submitStatus { display: none; }
     }
-
-    @media (max-width: 800px) {
-      .meta-section { grid-template-columns: 1fr 1fr; }
-      .meta-field:nth-child(3) { grid-column: span 2; border-right: none; }
-      .bottom-grid { grid-template-columns: 1fr; }
+    @media (max-width: 1050px) {
+      .page { width: calc(100vw - 12px); padding: 10px; }
+      .bottom-flex { grid-template-columns: 1fr; }
+      .flow-sheet { font-size: 12px; }
+      .flow-sheet .label { width: 170px; }
+      .page-header { flex-wrap: wrap; }
     }
   </style>
 </head>
 <body>
-<div class="screen-only">
-<div class="page-wrap">
+  <div class="page">
 
-  <!-- TOOLBAR -->
-  <div class="toolbar">
-    <span class="toolbar-brand">City of Stillwater — Public Works</span>
-    <div class="toolbar-actions">
-      <button class="btn" id="printBtn" type="button">Print / Export</button>
-      <button class="btn btn-primary" id="submitBtn" type="button">Submit to Database</button>
-    </div>
-  </div>
+    <!-- ── PAGE HEADER ─────────────────────────── -->
+    <div class="page-header">
+      <div class="logo-area">
+	  <img src="logo.png" alt="City of Stillwater">
+        <!--
+          Replace the div below with an <img> tag pointing to your logo, e.g.:
+          
+          The image will be shown at 46px tall (36px in print).
+        -->
+         <!-- <div class="logo-placeholder">Your Logo Here</div>-->
+      </div>
 
-  <!-- HEADER -->
-  <div class="doc-header">
-    <div>
-      <div class="doc-title">Hydrant Flow Test Summary Sheet</div>
-      <div class="doc-subtitle">Water Distribution System — Field Data Record</div>
-    </div>
-    <div class="doc-badge">
-      Form Rev. 2025<br>
-      City of Stillwater, OK
-    </div>
-  </div>
+      <div class="page-title-area">
+        <h1>Hydrant Flow Test Summary Sheet</h1>
+      </div>
 
-  <!-- META FIELDS -->
-  <div class="meta-section">
-    <div class="meta-field">
-      <div class="meta-label">Project / Description</div>
-      <input class="meta-input" type="text" id="fld_project" data-bind="project" value="" autocomplete="off" spellcheck="false">
-    </div>
-    <div class="meta-field">
-      <div class="meta-label">Test Date &amp; Time</div>
-      <div class="datetime-row">
-        <input type="date" id="fld_testDate" data-bind="testDate" value="">
-        <input type="time" id="fld_testTime" data-bind="testTime" value="">
+      <div class="toolbar">
+        <button class="action-btn" type="button" id="resetBtn" style="display:none;">Reset</button>
+        <button class="action-btn" type="button" id="printBtn">Print / Email</button>
+        <button class="action-btn primary" type="button" id="submitBtn">Submit to Database</button>
       </div>
     </div>
-    <div class="meta-field">
-      <div class="meta-label">Conducted By</div>
-      <input class="meta-input" type="text" id="fld_conductedBy" data-bind="conductedBy" value="" autocomplete="off" spellcheck="false">
-    </div>
-  </div>
+    <!-- ──────────────────────────────────────────── -->
 
+    <table class="flow-sheet" id="flowSheet"></table>
 
+    <div id="submitStatus" class="hint" style="margin:8px 0 0;"></div>
 
-  <!-- MAIN TABLE -->
-  <div class="table-wrap">
-    <table class="flow-table" id="flowTable"></table>
-  </div>
+    <div class="bottom-flex">
+      <div class="notes">
+        <h3>Notes</h3>
+        <p>1. Flow was calculated using:</p>
+        <p class="formula">Q<sub>c</sub> = (29.83)(C<sub>d</sub>)(D)<sup>2</sup>(P)<sup>½</sup></p>
+        <p>C<sub>d</sub> = Coefficient of discharge.</p>
+        <p>D = Internal orifice or nozzle diameter (IN).</p>
+        <p>P = Velocity pressure measured with pitot tube (PSI).</p>
+        <p style="margin-top:8px;">2. Flow across the available range of residual pressures was projected using:</p>
+        <p class="formula">Q<sub>p</sub> = Q<sub>c</sub> × [(P<sub>s</sub>−P<sub>x</sub>)/(P<sub>s</sub>−P<sub>r</sub>)]<sup>0.54</sup></p>
+        <p>Q<sub>c</sub> = flow calculated during test (GPM)</p>
+        <p>P<sub>s</sub> = static pressure during test (PSI)</p>
+        <p>P<sub>r</sub> = residual pressure during test (PSI)</p>
+        <p>P<sub>x</sub> = residual pressure at which to predict flow</p>
+      </div>
 
-  <div class="submit-status" id="submitStatus"></div>
-
-  <!-- BOTTOM -->
-  <div class="bottom-grid">
-    <div class="notes-panel">
-      <h4>Calculation Notes</h4>
-      <span class="formula-label">1. Flow formula (pitot method):</span>
-      <span class="formula">Q<sub>c</sub> = 29.83 × C<sub>d</sub> × D² × P<sup>½</sup></span>
-      <p style="font-size:9.5px;">C<sub>d</sub> = discharge coefficient &nbsp;|&nbsp; D = orifice diameter (IN) &nbsp;|&nbsp; P = pitot pressure (PSI)</p>
-      <p style="margin-top:8px;"></p>
-      <span class="formula-label">2. Flow projection formula:</span>
-      <span class="formula">Q<sub>p</sub> = Q<sub>c</sub> × [(P<sub>s</sub>−P<sub>x</sub>) / (P<sub>s</sub>−P<sub>r</sub>)]<sup>0.54</sup></span>
-      <p style="font-size:9.5px;">P<sub>s</sub> = static pressure &nbsp;|&nbsp; P<sub>r</sub> = residual (test) &nbsp;|&nbsp; P<sub>x</sub> = target residual</p>
-    </div>
-
-    <div>
-      <div class="chart-panel">
-        <div class="chart-header">
-          Flow–Pressure Characteristic Curve
-          <span class="legend-item"><span class="legend-line" style="background:var(--ink)"></span> Residual pressure (PSI)</span>
-          <span class="legend-item"><span class="legend-line" style="background:var(--accent-mid)"></span> Residual HGL (FT)</span>
-          <span class="legend-item"><span class="legend-dot" style="background:var(--accent-mid)"></span> Test point</span>
-          <span class="legend-item"><span class="legend-dot" style="background:transparent;border:2px solid var(--accent-mid)"></span> 20 PSI projected</span>
+      <div>
+        <div class="chart-card">
+          <svg id="chartSvg" viewBox="0 0 820 225" preserveAspectRatio="none"></svg>
         </div>
-        <svg id="chartSvg" viewBox="0 0 780 195" preserveAspectRatio="none"></svg>
+        <div class="disclaimer">
+          These test results represent the condition of the distribution system at the location, date, and time listed. They do not necessarily represent the capacity of the system at any specific design condition. Actual system performance can vary seasonally, diurnally, and as the system grows. Please contact the City of Stillwater for additional information regarding distribution system performance under specific design conditions.
+        </div>
       </div>
+    </div>
 
-      <div class="disclaimer" style="margin-top:10px; border-radius:4px;">
-        <p>These test results represent the condition of the distribution system at the location, date, and time listed. They do not necessarily represent system capacity at any specific design condition. Performance can vary seasonally, diurnally, and as the system grows. Contact the City of Stillwater for additional information.</p>
+    <div class="foot">Hydrant Flow Test Website</div>
+  </div>
+
+  <!-- ── SUBMIT POPUP ───────────────────────────── -->
+  <div id="submitPopup">
+    <div class="popup-inner">
+      <div id="submitPopupHeader">Submission Status</div>
+      <div id="submitPopupMessage"></div>
+      <div style="padding:0 16px 14px; text-align:right;">
+        <button type="button" id="submitPopupOkBtn" class="action-btn primary">OK</button>
       </div>
     </div>
   </div>
 
-  <div class="doc-foot">Hydrant Flow Test — City of Stillwater Water Distribution System</div>
+  <script>
+    // ── AGOL config ────────────────────────────────────────────────────────────
+    const AGOL_LAYER_URL = new URLSearchParams(window.location.search).get("layer_url")
+      || "https://services.arcgis.com/RPfJX2yEEVtopacQ/arcgis/rest/services/HydrantFlowTestRequests/FeatureServer/0";
 
-</div><!-- /page-wrap -->
-</div><!-- /screen-only -->
+    // ── State ──────────────────────────────────────────────────────────────────
+    function createBlankDefaults() {
+      return {
+        project: "", testDate: "", testTime: "", testDateTime: "", conductedBy: "",
+        residual: { location: "", id: "", staticPressure: "", residualPressure: "" },
+        flowHydrants: [
+          { location: "", id: "", pitot: "" },
+          { location: "", id: "", pitot: "" },
+          { location: "", id: "", pitot: "" }
+        ]
+      };
+    }
 
-<!-- POPUP -->
-<div id="submitPopup">
-  <div class="popup-inner">
-    <div class="popup-header" id="submitPopupHeader">Submission Status</div>
-    <div class="popup-body" id="submitPopupMessage"></div>
-    <div class="popup-footer"><button class="popup-ok" id="submitPopupOkBtn" type="button">OK</button></div>
-  </div>
-</div>
+    let defaultsData = createBlankDefaults();
+    let currentFeatureInfo = { objectIdFieldName: "OBJECTID", objectId: null, jobId: null };
 
-<script>
-const ELEVATIONS = {"300167":null,"300168":null,"300097":null,"300098":null,"300376":null,"300285":null,"300096":null,"300014":null,"300093":null,"300094":1102.92004394531,"300095":null,"300372":null,"300318":null,"300319":1054.030029296875,"300346":null,"300348":null,"300122":null,"300123":null,"300124":null,"300125":null,"300126":null,"300135":null,"300136":null,"300137":1063.18994140625,"300017":null,"300018":null,"300127":null,"300128":null,"300129":null,"300130":null,"300131":1081.02001953125,"300132":null,"300133":null,"300134":null,"300152":999.8909912109375,"300153":1052.300048828125,"300155":1082.1600341796875,"300156":1053.8900146484375,"300370":1067.9599609375,"300390":null,"300391":1086.199951171875,"300392":948.3480224609375,"300402":1011.1900024414062,"300421":1020.760009765625,"002372":1014.9400024414062,"000326":929.7869873046875,"000338":902.4169921875,"000339":909.8880004882812,"001705":927.9840087890625,"000343":953.6240234375,"001640":918.9509887695312,"001641":940.2340087890625,"001986":928.8519897460938,"001985":910.7650146484375,"000341":963.8809814453125,"000342":975.6799926757812,"001551":977.2119750976562,"001552":982.4039916992188,"001553":956.60302734375,"001554":947.2880249023438,"001555":961.718017578125,"001556":953.5369873046875,"001557":1008.8599853515625,"001558":993.9669799804688,"001561":978.3400268554688,"001982":953.89501953125,"001983":926.843994140625,"001984":907.4130249023438,"001559":1020.2000122070312,"001560":1022.1300048828125,"001562":1008.4000244140625,"001563":1011.47998046875,"001564":989.5579833984375,"000340":940.927978515625,"001704":951.260986328125,"002211":928.4249877929688,"300287":1019.739990234375,"300289":948.8660278320312,"300290":978.0570068359375,"300291":961.1920166015625,"300322":938.9879760742188,"300324":912.4719848632812,"300169":987.1209716796875,"300138":1035.1199951171875,"300139":1036.8299560546875,"300140":1001.1699829101562,"300141":957.3140258789062,"300142":942.2650146484375,"300143":934.010986328125,"300144":1012.9000244140625,"300145":969.8900146484375,"300146":943.2100219726562,"300147":953.3809814453125,"300149":986.8519897460938,"300154":930.1610107421875,"300325":926.593017578125,"300326":1007.2100219726562,"300336":1047.1099853515625,"300337":996.6380004882812,"300338":964.6190185546875,"300339":1021.6599731445312,"300340":null,"300341":1002.8099975585938,"300459":946.8720092773438,"300460":940.5250244140625,"300461":943.916015625,"300462":941.4459838867188,"001607":1038.550048828125,"001565":923.7949829101562,"000047":920.3109741210938,"000046":923.06201171875,"000049":929.6669921875,"000330":989.968017578125,"000331":952.2880249023438,"000048":926.89599609375,"001896":948.8209838867188,"002130":925.5999755859375,"300286":1016.4400024414062,"300288":1028.5400390625,"100214":907.2730102539062,"100248":921.1829833984375,"100249":904.3309936523438,"100250":908.4190063476562,"100251":924.1190185546875,"100252":944.3839721679688,"002286":925.405029296875,"300453":905.8300170898438,"300076":1049.9000244140625,"300077":981.9860229492188,"300380":1024.5999755859375,"300163":1029.050048828125,"300164":1033.8800048828125,"300120":959.3569946289062,"300121":1021.3300170898438,"300079":1011.260009765625,"300080":977.5549926757812,"300081":994.3660278320312,"300082":984.5040283203125,"300083":983.0260009765625,"300084":999.1820068359375,"300015":993.906005859375,"300019":1009.6099853515625,"300020":974.3170166015625,"300021":960.4409790039062,"300243":1005.030029296875,"300001":1003.0599975585938,"300002":989.656005859375,"300003":998.3170166015625,"300004":983.2050170898438,"300005":998.833984375,"300006":964.2449951171875,"300023":982.3460083007812,"300024":971.177978515625,"300069":938.8369750976562,"300070":909.5269775390625,"300085":990.9420166015625,"300086":917.97998046875,"300366":996.9210205078125,"300352":1041.800048828125,"300355":1024.1700439453125,"300310":1027.1199951171875,"300381":987.7119750976562,"300393":989.2830200195312,"300404":1023.77001953125,"000237":932.8809814453125,"000131":907.4329833984375,"000127":963.448974609375,"000246":1026.699951171875,"000238":941.9619750976562,"000231":949.7830200195312,"000242":962.0770263671875,"000244":946.7769775390625,"001443":970.5120239257812,"001438":962.7550048828125,"001442":970.5490112304688,"001441":968.031005859375,"000258":940.2329711914062,"001419":938.5980224609375,"001433":965.947021484375,"001440":975.635009765625,"001885":946.5570068359375,"001966":889.2999877929688,"002020":921.906005859375,"000014":878.6060180664062,"000218":914.2659912109375,"000220":934.2670288085938,"000185":933.1010131835938,"000264":905.6630249023438,"000268":949.4749755859375,"000265":910.7949829101562,"000263":912.8519897460938,"000223":963.5479736328125,"000230":957.2680053710938,"000229":959.0880126953125,"000163":954.4970092773438,"000241":965.0900268554688,"000133":937.6400146484375,"000221":956.6370239257812,"000222":974.7369995117188,"000243":936.75,"000245":973.81201171875,"000303":909.1510009765625,"000269":960.9240112304688,"000165":952.4819946289062,"000161":942.843994140625,"000162":947.9249877929688,"000270":957.0250244140625,"000146":929.27001953125,"000271":918.2949829101562,"000158":927.7999877929688,"000272":925.0880126953125,"000261":964.47998046875,"000157":942.7150268554688,"000159":943.7459716796875,"000160":966.9730224609375,"000248":984.697998046875,"000249":978.1190185546875,"000250":994.27099609375,"000252":947.844970703125,"000142":913.10400390625,"000260":961.4910278320312,"000259":932.4840087890625,"000257":941.5360107421875,"000135":916.7930297851562,"000136":913.3359985351562,"000273":919.27001953125,"000219":911.9539794921875,"000225":928.9119873046875,"000228":945.9340209960938,"000226":925.0819702148438,"000227":937.010986328125,"000305":929.0360107421875,"000307":916.8280029296875,"000304":920.3309936523438,"001887":932.802001953125,"000184":949.8330078125,"000306":932.4000244140625,"000147":941.0919799804688,"000262":922.2789916992188,"000137":992.4180297851562,"000140":973.0029907226562,"000139":917.7219848632812,"000236":923.9229736328125,"000052":906.6539916992188,"000741":906.0029907226562,"000130":907.39697265625,"001418":927.4010009765625,"000167":932.5390014648438,"001424":992.1119995117188,"001425":990.2119750976562,"001426":989.051025390625,"001427":988.3579711914062,"001428":982.8590087890625,"001429":956.3709716796875,"001458":879.3759765625,"001459":878.3889770507812,"000310":877.2550048828125,"001465":1011.2999877929688,"001466":1020.5399780273438,"001598":905.4970092773438,"001599":898.6409912109375,"001629":898.22802734375,"000311":878.3179931640625,"000294":880.68798828125,"000053":882.2949829101562,"000748":882.166015625,"001434":947.1719970703125,"001833":1041.530029296875,"001834":1030.6500244140625,"001835":995.7009887695312,"001836":992.1900024414062,"001837":1001.1199951171875,"001777":911.3140258789062,"000240":955.5070190429688,"000253":955.4920043945312,"000251":980.9739990234375,"000164":956.0780029296875,"000217":923.06298828125,"000166":970.8670043945312,"000266":924.4320068359375,"000255":944.7579956054688,"000256":941.4089965820312,"001432":1001.3699951171875,"001469":1032.6400146484375,"001431":980.302978515625,"001467":1037.6199951171875,"001543":910.2650146484375,"001792":983.8519897460938,"001778":890.5330200195312,"001779":890.1790161132812,"001863":919.4559936523438,"001439":974.8510131835938,"001436":954.0360107421875,"000254":977.4609985351562,"000274":914.2050170898438,"000145":916.1749877929688,"001969":890.594970703125,"001968":889.9710083007812,"001967":889.6580200195312,"001970":883.1510009765625,"001971":889.2490234375,"000267":956.1160278320312,"000733":902.8779907226562,"000747":904.572021484375,"000728":881.0339965820312,"000726":879.4639892578125,"000727":881.3519897460938,"001954":938.1270141601562,"000309":910.5650024414062,"000247":984.5180053710938,"001886":948.3560180664062,"001960":882.1710205078125,"001961":892.27001953125,"000138":993.6799926757812,"002038":939.677978515625,"002039":923.9190063476562,"000239":949.9730224609375,"001457":887.3099975585938,"002056":926.5460205078125,"002057":927.030029296875,"002058":916.458984375,"002059":920.6489868164062,"002060":910.4080200195312,"002061":915.8720092773438,"002062":918.1959838867188,"002063":924.6190185546875,"002064":931.8070068359375,"002065":937.1069946289062,"002071":917.7329711914062,"002068":913.1829833984375,"002066":913.5640258789062,"002122":916.1840209960938,"002073":929.47900390625,"002074":932.4219970703125,"002075":920.0759887695312,"002082":949.0609741210938,"002188":928.0170288085938,"002187":903.8679809570312,"002175":916.655029296875,"002147":926.9910278320312,"002148":967.7620239257812,"002149":979.2119750976562,"002150":972.2369995117188,"002172":959.3250122070312,"001932":1016.77001953125,"001437":967.572998046875,"001435":963.8049926757812,"002212":895.7449951171875,"000141":978.8619995117188,"000312":882.9110107421875,"000313":882.7559814453125,"001417":888.56298828125,"000051":902.7210083007812,"002190":928.6160278320312,"002221":958.2169799804688,"002222":939.822998046875,"300314":976.4409790039062,"300378":1025.02001953125,"300008":1018.1799926757812,"300165":978.0809936523438,"300166":1062.1500244140625,"300170":958.4019775390625,"300171":966.9769897460938,"300119":963.6170043945312,"300099":1057.43994140625,"300100":993.5029907226562,"300101":999.3939819335938,"300102":1072.1700439453125,"300103":1048.5799560546875,"300104":1040.9100341796875,"300105":1021.9000244140625,"300114":945.2750244140625,"300115":999.8040161132812,"300117":959.4140014648438,"300118":960.6500244140625,"300009":1035.219970703125,"300016":982.6680297851562,"300208":957.2020263671875,"300209":968.0349731445312,"300210":994.5130004882812,"300007":1003.3300170898438,"300087":911.3309936523438,"300088":916.208984375,"300089":1025.6400146484375,"300090":1023.2999877929688,"300091":1009.969970703125,"300106":1041.0400390625,"300107":986.5770263671875,"300108":1017.760009765625,"300109":1043.93994140625,"300110":1030.9200439453125,"300111":1013.8400268554688,"300112":969.2310180664062,"300148":985.0239868164062,"300227":993.2969970703125,"300229":994.5269775390625,"300230":923.2540283203125,"300351":949.2780151367188,"300353":1020.3900146484375,"300354":920.2670288085938,"002232":891.302978515625,"002233":895.1079711914062,"300383":879.1690063476562,"002246":948.822021484375,"002245":941.281005859375,"002248":872.1859741210938,"002249":877.1950073242188,"002251":897.156005859375,"002250":904.260009765625,"002247":881.6339721679688,"002290":910.22900390625,"002287":923.14599609375,"002288":907.9879760742188,"002293":919.093017578125,"002324":1018.530029296875,"100271":1025.1400146484375,"100270":955.594970703125,"100269":938.041015625,"100268":929.5440063476562,"100267":931.8499755859375,"100266":913.9039916992188,"100265":910.5650024414062,"100264":898.9099731445312,"100263":894.9810180664062,"002367":926.8170166015625,"002368":905.8759765625,"002364":916.697021484375,"002365":926.7020263671875,"002366":915.4210205078125,"002373":1001.3800048828125,"300424":972.4509887695312,"300113":969.052978515625,"300441":875.8300170898438,"002410":1052.7900390625,"001420":924.4409790039062,"001630":896.3839721679688,"000445":876.8829956054688,"000216":886.385986328125,"000447":872.5590209960938,"000283":885.3569946289062,"000288":880.0020141601562,"000647":897.39501953125,"000108":933.1439819335938,"000060":943.4010009765625,"000061":926.677001953125,"000213":916.4829711914062,"000055":952.447998046875,"000215":914.291015625,"000206":943.2550048828125,"000295":870.5670166015625,"000072":933.1840209960938,"000073":927.1300048828125,"000084":943.9810180664062,"000083":940.7379760742188,"000103":993.1599731445312,"000104":1015.5499877929688,"000105":1016.2999877929688,"000102":1026.1199951171875,"000066":986.4940185546875,"000082":958.2410278320312,"000081":942.1500244140625,"000069":949.156005859375,"000077":967.625,"000085":961.469970703125,"000071":975.7789916992188,"000070":974.3090209960938,"000067":973.4600219726562,"000068":971.822021484375,"000057":948.5419921875,"000059":937.7769775390625,"000058":939.8510131835938,"000177":886.2479858398438,"000407":892.093017578125,"000405":885.198974609375,"001481":879.8800048828125,"001482":961.6220092773438,"001483":967.2540283203125,"001484":959.7999877929688,"001485":952.2960205078125,"001486":958.0499877929688,"001487":956.8740234375,"001488":952.572021484375,"001489":963.39501953125,"000096":1006.25,"001544":864.5469970703125,"001547":869.14501953125,"000761":895.89697265625,"000760":896.0789794921875,"001452":870.426025390625,"000099":963.9400024414062,"000098":969.1589965820312,"001770":890.6119995117188,"000641":876.3679809570312,"001862":945.5670166015625,"000275":891.6710205078125,"001946":877.3060302734375,"001981":897.6950073242188,"000444":897.5430297851562,"000015":878.0479736328125,"000016":872.2130126953125,"000017":879.9550170898438,"000018":881.7230224609375,"000020":913.9450073242188,"000021":919.5089721679688,"000022":905.3049926757812,"000101":1000.8099975585938,"000205":918.1320190429688,"000087":970.8790283203125,"000091":970.72802734375,"000212":929.2410278320312,"000186":918.5449829101562,"000211":936.5599975585938,"000188":958.2869873046875,"000187":968.948974609375,"000207":948.0549926757812,"000107":978.9119873046875,"000214":934.5170288085938,"000180":932.10400390625,"000151":886.5440063476562,"000170":900.7680053710938,"000297":880.3270263671875,"000171":888.8070068359375,"000174":877.1199951171875,"000172":885.8930053710938,"000173":874.8150024414062,"000298":877.9210205078125,"000169":876.510986328125,"000178":885.218017578125,"000176":884.3909912109375,"000383":879.5850219726562,"000391":878.906005859375,"000380":873.8619995117188,"000663":881.6170043945312,"000404":888.0059814453125,"000836":904.2470092773438,"000181":909.7579956054688,"000182":886.1649780273438,"000150":879.2420043945312,"000144":882.0159912109375,"000286":884.0599975585938,"000152":884.8200073242188,"000284":884.5560302734375,"000282":883.64501953125,"000128":893.1439819335938,"000287":882.7670288085938,"000292":886.5700073242188,"001684":873.8980102539062,"001447":875.0679931640625,"000210":927.2249755859375,"000285":883.2349853515625,"000277":898.4569702148438,"000280":894.7319946289062,"000281":888.4459838867188,"000278":904.9940185546875,"000155":898.1380004882812,"000154":906.5889892578125,"000642":898.5449829101562,"000300":880.822998046875,"000649":894.3489990234375,"000480":897.6179809570312,"001061":881.85498046875,"000346":877.9760131835938,"000198":881.4810180664062,"000344":874.9769897460938,"000643":898.9959716796875,"000293":879.3679809570312,"000347":885.2780151367188,"000531":889.3699951171875,"000486":894.4039916992188,"000088":944.3280029296875,"001415":898.291015625,"000189":910.364990234375,"000190":909.3259887695312,"000314":877.1669921875,"000149":891.030029296875,"000191":909.7080078125,"000301":888.0430297851562,"000195":888.6669921875,"000196":898.8579711914062,"001736":888.010986328125,"001737":890.5650024414062,"001741":982.0150146484375,"000194":917.0040283203125,"000106":941.6409912109375,"000193":911.010986328125,"000197":888.468017578125,"000650":884.2760009765625,"000382":867.9840087890625,"000402":896.2570190429688,"000183":888.1840209960938,"000279":883.8410034179688,"001460":878.5770263671875,"001461":875.1610107421875,"000209":962.6010131835938,"001516":873.5,"001519":897.0599975585938,"001521":881.9609985351562,"001522":887.5050048828125,"001449":877.447998046875,"001448":873.4559936523438,"001450":871.3909912109375,"001585":905.3280029296875,"000704":900.7589721679688,"000289":880.2479858398438,"000290":889.47900390625,"000291":893.5250244140625,"000208":969.0830078125,"001650":957.9869995117188,"001651":953.7329711914062,"001653":965.6840209960938,"001671":874.1539916992188,"001743":968.594970703125,"001744":971.6519775390625,"001748":926.177978515625,"000432":873.0440063476562,"000644":893.5859985351562,"001827":884.8359985351562,"001828":878.43798828125,"001869":897.0059814453125,"001470":955.593017578125,"001453":874.6959838867188,"001451":870.7899780273438,"001541":891.6959838867188,"001542":886.1019897460938,"001545":872.5479736328125,"001546":880.8610229492188,"001548":879.9000244140625,"001549":887.1099853515625,"001550":871.239013671875,"000484":886.156982421875,"001725":880.6790161132812,"001729":880.7780151367188,"001730":878.9630126953125,"000080":936.5339965820312,"001768":905.6939697265625,"001771":904.2789916992188,"001772":886.6539916992186,"000401":893.3909912109375,"001780":887.8480224609375,"001788":891.6400146484375,"001480":879.8250122070312,"001861":989.2420043945312,"000276":903.1160278320312,"000086":948.791015625,"000078":979.5250244140625,"000079":983.2009887695312,"000092":978.9000244140625,"000093":957.4310302734375};
+    function getJobIdFromUrl() {
+      return new URLSearchParams(window.location.search).get("job_id");
+    }
 
-const AGOL_LAYER_URL = new URLSearchParams(window.location.search).get("layer_url") || "https://services.arcgis.com/RPfJX2yEEVtopacQ/arcgis/rest/services/HydrantFlowTestRequests/FeatureServer/0";
+    async function loadDefaultsFromAgol() {
+      const jobId = getJobIdFromUrl();
+      currentFeatureInfo.jobId = jobId || null;
+      if (!jobId) { console.warn("No job_id in URL. Using blank defaults."); return createBlankDefaults(); }
+      if (!AGOL_LAYER_URL || AGOL_LAYER_URL.includes("REPLACE_WITH_YOUR_AGOL_FEATURESERVER_URL")) {
+        console.warn("AGOL layer URL not set."); return createBlankDefaults();
+      }
+      const where = `job_id='${jobId.replace(/'/g,"''")}'`;
+      const queryUrl = `${AGOL_LAYER_URL}/query?where=${encodeURIComponent(where)}&outFields=*&returnGeometry=false&f=json`;
+      try {
+        const resp = await fetch(queryUrl);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (!data.features || !data.features.length) { console.warn("No record found."); return createBlankDefaults(); }
+        const r = data.features[0].attributes || {};
+        currentFeatureInfo.objectIdFieldName = data.objectIdFieldName || "OBJECTID";
+        currentFeatureInfo.objectId = r[currentFeatureInfo.objectIdFieldName] ?? r.OBJECTID ?? null;
+        return {
+          project: r.project || "", testDate: "", testTime: "", testDateTime: "", conductedBy: "",
+          residual: {
+            location: r.res_location || "", id: r.res_id || "",
+            staticPressure: r.res_static_pressure ?? r.measured_static_pressure ?? "",
+            residualPressure: r.res_residual_pressure ?? r.measured_residual_pressure ?? ""
+          },
+          flowHydrants: [
+            { location: r.flow1_location || "", id: r.flow1_id || "", pitot: r.flow1_pitot ?? r.flow1_pitot_reading ?? "" },
+            { location: r.flow2_location || "", id: r.flow2_id || "", pitot: r.flow2_pitot ?? r.flow2_pitot_reading ?? "" },
+            { location: r.flow3_location || "", id: r.flow3_id || "", pitot: r.flow3_pitot ?? r.flow3_pitot_reading ?? "" }
+          ]
+        };
+      } catch (e) { console.error("AGOL load failed:", e); return createBlankDefaults(); }
+    }
 
-function createBlankDefaults() {
-  return { project:"",testDate:"",testTime:"",testDateTime:"",conductedBy:"",
-    residual:{location:"",id:"",staticPressure:"",residualPressure:""},
-    flowHydrants:[{location:"",id:"",pitot:""},{location:"",id:"",pitot:""},{location:"",id:"",pitot:""}] };
-}
+    const state = {
+      flowCount: 1, project: "", testDate: "", testTime: "", testDateTime: "", conductedBy: "",
+      residual: { location: "", id: "", elevation: "", staticPressure: "", residualPressure: "" },
+      flowHydrants: [
+        { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" },
+        { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" },
+        { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" }
+      ]
+    };
 
-let defaultsData = createBlankDefaults();
-let currentFeatureInfo = { objectIdFieldName:"OBJECTID", objectId:null, jobId:null };
+    function getAutoFlowCount(fh) {
+      const n = (fh || []).filter(h => h && (String(h.location||"").trim() || String(h.id||"").trim())).length;
+      return Math.max(1, Math.min(3, n || 1));
+    }
 
-function getJobIdFromUrl() { return new URLSearchParams(window.location.search).get("job_id"); }
+    function applyDefaults() {
+      state.project = defaultsData.project || "";
+      state.testDate = defaultsData.testDate || "";
+      state.testTime = defaultsData.testTime || "";
+      state.testDateTime = defaultsData.testDateTime || "";
+      if (!state.testDate && state.testDateTime && state.testDateTime.includes("T")) {
+        const p = state.testDateTime.split("T");
+        state.testDate = p[0] || ""; state.testTime = p[1] || "";
+      }
+      state.conductedBy = defaultsData.conductedBy || "";
+      state.residual.location = defaultsData.residual?.location || "";
+      state.residual.id = defaultsData.residual?.id || "";
+      state.residual.staticPressure = defaultsData.residual?.staticPressure || "";
+      state.residual.residualPressure = defaultsData.residual?.residualPressure || "";
+      state.residual.elevation = lookupElevation(state.residual.id);
+      state.flowHydrants.forEach((h, i) => {
+        const d = defaultsData.flowHydrants?.[i] || {};
+        h.location = d.location || ""; h.id = d.id || ""; h.pitot = d.pitot || "";
+        h.elevation = lookupElevation(h.id);
+      });
+      state.flowCount = getAutoFlowCount(defaultsData.flowHydrants);
+    }
 
-async function loadDefaultsFromAgol() {
-  const jobId = getJobIdFromUrl();
-  currentFeatureInfo.jobId = jobId || null;
-  if (!jobId) return createBlankDefaults();
-  const where = `job_id='${jobId.replace(/'/g,"''")}'`;
-  const queryUrl = `${AGOL_LAYER_URL}/query?where=${encodeURIComponent(where)}&outFields=*&returnGeometry=false&f=json`;
-  try {
-    const response = await fetch(queryUrl);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    if (!data.features || !data.features.length) return createBlankDefaults();
-    const r = data.features[0].attributes || {};
-    currentFeatureInfo.objectIdFieldName = data.objectIdFieldName || "OBJECTID";
-    currentFeatureInfo.objectId = r[currentFeatureInfo.objectIdFieldName] ?? r.OBJECTID ?? null;
-    return { project:r.project||"",testDate:"",testTime:"",testDateTime:"",conductedBy:"",
-      residual:{location:r.res_location||"",id:r.res_id||"",staticPressure:r.res_static_pressure??r.measured_static_pressure??"",residualPressure:r.res_residual_pressure??r.measured_residual_pressure??""},
-      flowHydrants:[{location:r.flow1_location||"",id:r.flow1_id||"",pitot:r.flow1_pitot??r.flow1_pitot_reading??""},{location:r.flow2_location||"",id:r.flow2_id||"",pitot:r.flow2_pitot??r.flow2_pitot_reading??""},{location:r.flow3_location||"",id:r.flow3_id||"",pitot:r.flow3_pitot??r.flow3_pitot_reading??""}] };
-  } catch(e) { console.error(e); return createBlankDefaults(); }
-}
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    const sheet = document.getElementById("flowSheet");
+    function num(v) { const n = parseFloat(v); return Number.isFinite(n) ? n : null; }
+    function fmt(v, digits=2) {
+      if (v===null||v===undefined||Number.isNaN(v)) return "";
+      return Number(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:digits});
+    }
+    function esc(v) {
+      return String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+    function bindToId(path) { return `fld_${String(path).replace(/[^a-zA-Z0-9]+/g,"_")}`; }
 
-const state = {
-  flowCount:1,project:"",testDate:"",testTime:"",testDateTime:"",conductedBy:"",
-  residual:{location:"",id:"",elevation:"",staticPressure:"",residualPressure:""},
-  flowHydrants:[
-    {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""},
-    {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""},
-    {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""}
-  ]
-};
+    function lookupElevation(id) {
+      const key = String(id||"").trim();
+      if (!key) return "";
+      // ELEVATIONS is loaded from elevations.js
+      if (typeof ELEVATIONS === "undefined") return "N/A";
+      const val = ELEVATIONS[key];
+      if (val===undefined||val===null) return "Not Found";
+      return fmt(val,2);
+    }
 
-function getAutoFlowCount(fh) {
-  const n = (fh||[]).filter(h=>h&&(String(h.location||"").trim()||String(h.id||"").trim())).length;
-  return Math.max(1,Math.min(3,n||1));
-}
+    // ── Calculations ───────────────────────────────────────────────────────────
+    function calcFlow(h) {
+      const c=num(h.coefficient), d=num(h.diameter), p=num(h.pitot);
+      if (c===null||d===null||p===null||p<0) return null;
+      return (29.83*c)*(d**2)*Math.sqrt(p);
+    }
+    function totalCalculatedFlow() {
+      let sum=0, any=false;
+      for (let i=0;i<state.flowCount;i++) { const f=calcFlow(state.flowHydrants[i]); if(f!==null){sum+=f;any=true;} }
+      return any?sum:0;
+    }
+    function projectedFlow(px) {
+      const total=totalCalculatedFlow(), ps=num(state.residual.staticPressure), pr=num(state.residual.residualPressure);
+      if (ps===null||pr===null||ps<=pr) return null;
+      const ratio=(ps-px)/(ps-pr);
+      return ratio<0?null:total*(ratio**0.54);
+    }
+    function residualHGL(pressure) {
+      const elev=num(state.residual.elevation), p=num(pressure);
+      return (elev===null||p===null)?null:elev+p*2.31;
+    }
+    function staticHGL() { return residualHGL(state.residual.staticPressure); }
+    function testResidualHGL() { return residualHGL(state.residual.residualPressure); }
+    function chartPoints() {
+      const ps=num(state.residual.staticPressure), pr=num(state.residual.residualPressure);
+      const total=totalCalculatedFlow(), elev=num(state.residual.elevation);
+      if (ps===null||pr===null||elev===null||ps<=pr) return [];
+      const step=ps/9, pts=[];
+      for (let i=0;i<=9;i++) {
+        const r=step*i, ratio=(ps-r)/(ps-pr);
+        const flow=total*(ratio**0.54), hgl=elev+r*2.31;
+        if (Number.isFinite(flow)&&Number.isFinite(hgl)) pts.push({residual:r,flow,hgl});
+      }
+      return pts;
+    }
 
-function applyDefaults() {
-  state.project=defaultsData.project||"";
-  state.testDate=defaultsData.testDate||"";
-  state.testTime=defaultsData.testTime||"";
-  state.testDateTime=defaultsData.testDateTime||"";
-  if(!state.testDate&&state.testDateTime&&state.testDateTime.includes("T")){
-    const p=state.testDateTime.split("T");state.testDate=p[0]||"";state.testTime=p[1]||"";
-  }
-  state.conductedBy=defaultsData.conductedBy||"";
-  state.residual.location=defaultsData.residual?.location||"";
-  state.residual.id=defaultsData.residual?.id||"";
-  state.residual.staticPressure=defaultsData.residual?.staticPressure||"";
-  state.residual.residualPressure=defaultsData.residual?.residualPressure||"";
-  state.residual.elevation=lookupElevation(state.residual.id);
-  state.flowHydrants.forEach((h,i)=>{
-    const d=defaultsData.flowHydrants?.[i]||{};
-    h.location=d.location||"";h.id=d.id||"";h.pitot=d.pitot||"";h.elevation=lookupElevation(h.id);
-  });
-  state.flowCount=getAutoFlowCount(defaultsData.flowHydrants);
-}
+    // ── HTML builders ──────────────────────────────────────────────────────────
+    function inputCell(value, onInput, className="input center", type="text") {
+      let inputType=type, extra='';
+      if (type==="text") extra=' inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false"';
+      else if (type==="number") extra=' step="any"';
+      else if (type==="numericText") { inputType="text"; extra=' inputmode="decimal" autocapitalize="off" autocomplete="off" spellcheck="false"'; }
+      return `<td class="${className}"><input id="${bindToId(onInput)}" type="${inputType}" value="${esc(value)}" data-bind="${onInput}"${extra}></td>`;
+    }
+    function calcCell(value, className="calc center") {
+      return `<td class="${className}"><span class="calc-readout">${esc(value)}</span></td>`;
+    }
+    function unitCell(text) { return `<td class="unit">${esc(text||"")}</td>`; }
+    function inlineNote(text) { return `<td class="note-inline">${esc(text||"")}</td>`; }
 
-function num(v){const n=parseFloat(v);return Number.isFinite(n)?n:null;}
-function fmt(v,d=2){if(v===null||v===undefined||Number.isNaN(v))return"";return Number(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:d});}
-function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+    function topRow(label, bind, value, colspan) {
+      if (bind==="testDateTime") {
+        return `<tr>
+          <td class="label no-border">${esc(label)}</td>
+          <td class="input top-lines" colspan="${colspan}">
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:6px;margin:0;">
+                <span style="font-size:11px;color:#5b6470;">Date</span>
+                <input id="fld_testDate" type="date" data-bind="testDate" value="${esc(state.testDate)}">
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;margin:0;">
+                <span style="font-size:11px;color:#5b6470;">Time</span>
+                <input id="fld_testTime" type="time" data-bind="testTime" value="${esc(state.testTime)}">
+              </label>
+            </div>
+          </td>
+          <td class="no-border"></td><td class="no-border"></td></tr>`;
+      }
+      return `<tr>
+        <td class="label no-border">${esc(label)}</td>
+        <td class="input top-lines" colspan="${colspan}">
+          <input id="${bindToId(bind)}" type="text" data-bind="${bind}" value="${esc(value)}" inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false">
+        </td>
+        <td class="no-border"></td><td class="no-border"></td></tr>`;
+    }
 
-function lookupElevation(id) {
-  const key=String(id||"").trim();
-  if(!key)return"";
-  const val=ELEVATIONS[key];
-  if(val===undefined||val===null)return"Not Found";
-  return fmt(val,2);
-}
+    // ── Render ─────────────────────────────────────────────────────────────────
+    function renderTable() {
+      const headers = ["Residual Hydrant"];
+      for (let i=1;i<=state.flowCount;i++) headers.push(`Flow Hydrant ${i}`);
+      headers.push("Total Flow");
 
-function calcFlow(h){
-  const c=num(h.coefficient),d=num(h.diameter),p=num(h.pitot);
-  if(c===null||d===null||p===null||p<0)return null;
-  return 29.83*c*d*d*Math.sqrt(p);
-}
+      let html = "";
+      html += `<colgroup><col style="width:240px;">`;
+      headers.forEach((h,idx) => {
+        const w = idx===headers.length-1 ? 95 : (state.flowCount===3?165:185);
+        html += `<col style="width:${w}px;">`;
+      });
+      html += `<col style="width:48px;"><col style="width:112px;"></colgroup>`;
 
-function totalCalcFlow(){
-  let s=0,any=false;
-  for(let i=0;i<state.flowCount;i++){const f=calcFlow(state.flowHydrants[i]);if(f!==null){s+=f;any=true;}}
-  return any?s:0;
-}
+      html += topRow("Project:", "project", state.project, headers.length);
+      html += topRow("Test Date and Time:", "testDateTime", state.testDateTime, headers.length);
+      html += topRow("Conducted By:", "conductedBy", state.conductedBy, headers.length);
 
-function projectedFlow(pr_target){
-  const total=totalCalcFlow(),ps=num(state.residual.staticPressure),pr=num(state.residual.residualPressure);
-  if(ps===null||pr===null||ps<=pr)return null;
-  const ratio=(ps-pr_target)/(ps-pr);
-  if(ratio<0)return null;
-  return total*(ratio**0.54);
-}
+      // Spacer
+      html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length+2).fill('<td class="no-border"></td>').join("")}</tr>`;
 
-function residualHGL(p){
-  const elev=num(state.residual.elevation),pp=num(p);
-  if(elev===null||pp===null)return null;
-  return elev+pp*2.31;
-}
-const staticHGL=()=>residualHGL(state.residual.staticPressure);
-const testResidualHGL=()=>residualHGL(state.residual.residualPressure);
+      // Column headers
+      html += `<tr><td class="label section-top no-border"></td>`;
+      headers.forEach((h,idx) => {
+        html += `<th class="header-cell ${idx===headers.length-1?"subhead-total":""}">${esc(h)}</th>`;
+      });
+      html += `<td class="no-border"></td><td class="no-border"></td></tr>`;
 
-function chartPoints(){
-  const ps=num(state.residual.staticPressure),pr=num(state.residual.residualPressure),total=totalCalcFlow(),elev=num(state.residual.elevation);
-  if(ps===null||pr===null||elev===null||ps<=pr)return[];
-  const step=ps/9,pts=[];
-  for(let i=0;i<=9;i++){
-    const residual=step*i,ratio=(ps-residual)/(ps-pr);
-    const flow=total*(ratio**0.54),hgl=elev+residual*2.31;
-    if(Number.isFinite(flow)&&Number.isFinite(hgl))pts.push({residual,flow,hgl});
-  }
-  return pts;
-}
+      // Data rows
+      const dataRow = (label, residualCell, flowCells, totalCell, unit, note) =>
+        `<tr><td class="label">${label}</td>${residualCell}${flowCells}${totalCell}${unitCell(unit)}${inlineNote(note)}</tr>`;
 
-function renderTable() {
-  const t = document.getElementById("flowTable");
-  const fc = state.flowCount;
-  const colDataW = fc===3?140:fc===2?170:210;
+      html += dataRow("Hydrant Location:",
+        inputCell(state.residual.location,"residual.location"),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].location,`flowHydrants.${i}.location`)).join(""),
+        calcCell("N/A"),"","");
 
-  let html = `<colgroup><col class="col-label">`;
-  html += `<col style="width:${colDataW}px;">`;
-  for(let i=0;i<fc;i++) html+=`<col style="width:${colDataW}px;">`;
-  html += `<col class="col-total"><col class="col-unit"><col class="col-note"></colgroup>`;
+      html += dataRow("Hydrant Unique ID:",
+        inputCell(state.residual.id,"residual.id"),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].id,`flowHydrants.${i}.id`)).join(""),
+        calcCell("N/A"),"","");
 
-  // Header row
-  html += `<tr class="th-row">`;
-  html += `<th class="th-label">Field / Measurement</th>`;
-  html += `<th>Residual Hydrant</th>`;
-  for(let i=0;i<fc;i++) html+=`<th>Flow Hydrant ${i+1}</th>`;
-  html += `<th class="th-total">Total Flow</th>`;
-  html += `<th class="th-unit"></th><th class="th-note"></th>`;
-  html += `</tr>`;
+      html += dataRow("Hydrant Elevation:",
+        calcCell(state.residual.elevation||""),
+        Array.from({length:state.flowCount},(_,i)=>calcCell(state.flowHydrants[i].elevation||"")).join(""),
+        calcCell("N/A"),"FT","");
 
-  function row(label,residualCell,flowCells,totalCell,unit,note){
-    let r=`<tr class="data-row"><td class="td-label">${label}</td>${residualCell}`;
-    for(let i=0;i<fc;i++) r+=flowCells[i];
-    r+=`${totalCell}<td class="td-unit">${unit||""}</td><td class="td-note">${note||""}</td></tr>`;
-    return r;
-  }
-  function inp(val,bind,cls="td-input"){
-    return`<td class="${cls}"><input type="text" value="${esc(val)}" data-bind="${bind}" inputmode="decimal" autocomplete="off" spellcheck="false"></td>`;
-  }
-  function calc(val,cls="td-calc"){return`<td class="${cls}"><span>${esc(val)}</span></td>`;}
-  function blank(cls="td-blank"){return`<td class="${cls}"></td>`;}
+      html += dataRow("Outlet Coefficient:",
+        calcCell(""),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].coefficient,`flowHydrants.${i}.coefficient`,"calc center")).join(""),
+        calcCell("N/A"),"","0.9 typical");
 
-  // Location row
-  html+=`<tr class="data-row"><td class="td-label">Hydrant Location</td>`;
-  html+=inp(state.residual.location,"residual.location");
-  for(let i=0;i<fc;i++) html+=inp(state.flowHydrants[i].location,`flowHydrants.${i}.location`);
-  html+=blank("td-total")+`<td class="td-unit"></td><td class="td-note"></td></tr>`;
+      html += dataRow("Outlet Diameter:",
+        calcCell(""),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].diameter,`flowHydrants.${i}.diameter`,"calc center")).join(""),
+        calcCell("N/A"),"IN","2.5 IN typical");
 
-  // ID row
-  html+=`<tr class="data-row"><td class="td-label">Hydrant Unique ID</td>`;
-  html+=inp(state.residual.id,"residual.id");
-  for(let i=0;i<fc;i++) html+=inp(state.flowHydrants[i].id,`flowHydrants.${i}.id`);
-  html+=blank("td-total")+`<td class="td-unit"></td><td class="td-note"></td></tr>`;
+      // Operations banner
+      html += `<tr><td class="label no-border" style="height:4px;"></td><td class="section-banner" colspan="${headers.length}">Operations — fill in during the test</td><td class="no-border"></td><td class="no-border"></td></tr>`;
 
-  // Elevation row
-  html+=`<tr class="data-row"><td class="td-label">Elevation (auto-lookup)</td>`;
-  html+=calc(state.residual.elevation||"—");
-  for(let i=0;i<fc;i++) html+=calc(state.flowHydrants[i].elevation||"—");
-  html+=blank("td-total")+`<td class="td-unit">FT</td><td class="td-note"></td></tr>`;
+      html += `<tr><td class="label section-top">Measured Static Pressure:</td>`;
+      html += inputCell(state.residual.staticPressure,"residual.staticPressure","input center","numericText");
+      for (let i=0;i<state.flowCount;i++) html += calcCell("");
+      html += calcCell(""); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
 
-  // Coefficient row
-  html+=`<tr class="data-row"><td class="td-label">Outlet Coefficient C<sub>d</sub></td>`;
-  html+=blank();
-  for(let i=0;i<fc;i++) html+=inp(state.flowHydrants[i].coefficient,`flowHydrants.${i}.coefficient`,"td-input");
-  html+=blank("td-total")+`<td class="td-unit"></td><td class="td-note">0.9 typical</td></tr>`;
+      html += `<tr><td class="label">Measured Residual Pressure:</td>`;
+      html += inputCell(state.residual.residualPressure,"residual.residualPressure","input center","numericText");
+      for (let i=0;i<state.flowCount;i++) html += calcCell("");
+      html += calcCell(""); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
 
-  // Diameter row
-  html+=`<tr class="data-row"><td class="td-label">Outlet Diameter</td>`;
-  html+=blank();
-  for(let i=0;i<fc;i++) html+=inp(state.flowHydrants[i].diameter,`flowHydrants.${i}.diameter`,"td-input");
-  html+=blank("td-total")+`<td class="td-unit">IN</td><td class="td-note">2.5" typical</td></tr>`;
+      html += `<tr><td class="label">Pitot Tube Reading:</td>`;
+      html += calcCell("");
+      for (let i=0;i<state.flowCount;i++) html += inputCell(state.flowHydrants[i].pitot,`flowHydrants.${i}.pitot`,"input center","numericText");
+      html += calcCell("N/A"); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
 
-  // Section banner
-  html+=`<tr class="section-row"><td></td><td class="section-banner" colspan="${fc+2}">Field Measurements — Complete During Test</td><td></td><td></td></tr>`;
+      // Spacer row
+      html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length).fill('<td class="calc"></td>').join("")}<td class="no-border"></td><td class="no-border"></td></tr>`;
 
-  // Static pressure
-  html+=`<tr class="data-row"><td class="td-label">Measured Static Pressure</td>`;
-  html+=inp(state.residual.staticPressure,"residual.staticPressure");
-  for(let i=0;i<fc;i++) html+=blank();
-  html+=blank("td-total")+`<td class="td-unit">PSI</td><td class="td-note"></td></tr>`;
+      html += dataRow("Static HGL During Test:",
+        calcCell(fmt(staticHGL(),2)),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(""),"","");
 
-  // Residual pressure
-  html+=`<tr class="data-row"><td class="td-label">Measured Residual Pressure</td>`;
-  html+=inp(state.residual.residualPressure,"residual.residualPressure");
-  for(let i=0;i<fc;i++) html+=blank();
-  html+=blank("td-total")+`<td class="td-unit">PSI</td><td class="td-note"></td></tr>`;
+      html += dataRow("Residual HGL During Test:",
+        calcCell(fmt(testResidualHGL(),2)),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(""),"","");
 
-  // Pitot
-  html+=`<tr class="data-row"><td class="td-label">Pitot Tube Reading</td>`;
-  html+=blank();
-  for(let i=0;i<fc;i++) html+=inp(state.flowHydrants[i].pitot,`flowHydrants.${i}.pitot`,"td-input");
-  html+=blank("td-total")+`<td class="td-unit">PSI</td><td class="td-note"></td></tr>`;
+      html += dataRow("Calculated Flow During Test:",
+        calcCell(""),
+        Array.from({length:state.flowCount},(_,i)=>calcCell(fmt(calcFlow(state.flowHydrants[i]),0))).join(""),
+        calcCell(fmt(totalCalculatedFlow(),0)),"GPM","calculated");
 
-  // Section banner
-  html+=`<tr class="section-row"><td></td><td class="section-banner" colspan="${fc+2}">Calculated Results</td><td></td><td></td></tr>`;
+      html += dataRow("Projected Flow at 25 PSI Residual:",
+        calcCell(""),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(fmt(projectedFlow(25),0)),"GPM","calculated");
 
-  // Static HGL
-  html+=`<tr class="calc-row"><td class="td-label">Static HGL During Test</td>`;
-  html+=calc(fmt(staticHGL(),2),"td-calc");
-  for(let i=0;i<fc;i++) html+=blank("td-calc");
-  html+=blank("td-total")+`<td class="td-unit">FT</td><td class="td-note"></td></tr>`;
+      html += dataRow("Projected Flow at 20 PSI Residual:",
+        calcCell(""),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(fmt(projectedFlow(20),0)),"GPM","calculated");
 
-  // Residual HGL
-  html+=`<tr class="calc-row"><td class="td-label">Residual HGL During Test</td>`;
-  html+=calc(fmt(testResidualHGL(),2),"td-calc");
-  for(let i=0;i<fc;i++) html+=blank("td-calc");
-  html+=blank("td-total")+`<td class="td-unit">FT</td><td class="td-note"></td></tr>`;
+      sheet.innerHTML = html;
+      bindInputs();
+      renderChart();
+    }
 
-  // Calculated flow
-  html+=`<tr class="calc-row"><td class="td-label">Calculated Flow During Test</td>`;
-  html+=blank("td-calc");
-  for(let i=0;i<fc;i++) html+=calc(fmt(calcFlow(state.flowHydrants[i]),0),"td-calc");
-  html+=calc(fmt(totalCalcFlow(),0),"td-total")+`<td class="td-unit">GPM</td><td class="td-note">from pitot</td></tr>`;
+    function bindInputs() {
+      sheet.querySelectorAll("input[data-bind]").forEach(input => {
+        input.addEventListener("input", e => {
+          const path=e.target.dataset.bind, value=e.target.value;
+          const ss=e.target.selectionStart, se=e.target.selectionEnd, sd=e.target.selectionDirection;
+          setStateValue(path, value);
+          if (path==="testDate"||path==="testTime")
+            state.testDateTime=[state.testDate||"",state.testTime||""].filter(Boolean).join("T");
+          if (path==="residual.id") state.residual.elevation=lookupElevation(value);
+          const fm=path.match(/^flowHydrants\.(\d+)\.id$/);
+          if (fm) state.flowHydrants[Number(fm[1])].elevation=lookupElevation(value);
+          renderTable();
+          const r=sheet.querySelector(`input[data-bind="${path}"]`);
+          if (r) { r.focus(); try{r.setSelectionRange(ss,se,sd||"none");}catch(err){} }
+        });
+      });
+    }
 
-  // Projected 25
-  html+=`<tr class="calc-row"><td class="td-label">Projected Flow @ 25 PSI Residual</td>`;
-  html+=blank("td-calc");
-  for(let i=0;i<fc;i++) html+=blank("td-calc");
-  html+=calc(fmt(projectedFlow(25),0),"td-total")+`<td class="td-unit">GPM</td><td class="td-note">projected</td></tr>`;
+    function setStateValue(path, value) {
+      const keys=path.split(".");
+      let ref=state;
+      for (let i=0;i<keys.length-1;i++) ref=ref[keys[i]];
+      ref[keys[keys.length-1]]=value;
+    }
 
-  // Projected 20
-  html+=`<tr class="calc-row"><td class="td-label">Projected Flow @ 20 PSI Residual</td>`;
-  html+=blank("td-calc");
-  for(let i=0;i<fc;i++) html+=blank("td-calc");
-  html+=calc(fmt(projectedFlow(20),0),"td-total")+`<td class="td-unit">GPM</td><td class="td-note">projected</td></tr>`;
+    // ── Chart ──────────────────────────────────────────────────────────────────
+    function renderChart() {
+      const svg=document.getElementById("chartSvg");
+      const pts=chartPoints();
+      const W=820,H=225;
+      const m={top:14,right:70,bottom:40,left:68};
+      const plotW=W-m.left-m.right, plotH=H-m.top-m.bottom;
 
-  t.innerHTML = html;
-  bindInputs();
-  renderChart();
-}
+      const maxFlow=Math.max(10,...pts.map(p=>p.flow||0));
+      const maxResidual=Math.max(10,...pts.map(p=>p.residual||0));
+      const minHgl=pts.length?Math.min(...pts.map(p=>p.hgl)):850;
+      const maxHgl=pts.length?Math.max(...pts.map(p=>p.hgl)):1750;
 
-function bindInputs() {
-  document.querySelectorAll("#flowTable input[data-bind]").forEach(input=>{
-    input.addEventListener("input",e=>{
-      const path=e.target.dataset.bind,val=e.target.value;
-      const ss=e.target.selectionStart,se=e.target.selectionEnd,sd=e.target.selectionDirection;
-      setVal(path,val);
-      if(path==="testDate"||path==="testTime") state.testDateTime=[state.testDate||"",state.testTime||""].filter(Boolean).join("T");
-      if(path==="residual.id") state.residual.elevation=lookupElevation(val);
-      const fm=path.match(/^flowHydrants\.(\d+)\.id$/);
-      if(fm) state.flowHydrants[+fm[1]].elevation=lookupElevation(val);
-      renderTable();
-      const el=document.querySelector(`#flowTable input[data-bind="${path}"]`);
-      if(el){el.focus();try{el.setSelectionRange(ss,se,sd||"none");}catch(err){}}
+      const x=v=>m.left+(v/maxFlow)*plotW;
+      const yL=v=>m.top+plotH-(v/maxResidual)*plotH;
+      const yR=v=>{ const span=Math.max(1,maxHgl-minHgl); return m.top+plotH-((v-minHgl)/span)*plotH; };
+
+      let out="";
+      out+=`<rect x="0" y="0" width="${W}" height="${H}" fill="#f8fafd"/>`;
+      // Grid
+      for (let i=0;i<=5;i++) {
+        const xv=(maxFlow/5)*i, xx=x(xv);
+        out+=`<line x1="${xx}" y1="${m.top}" x2="${xx}" y2="${m.top+plotH}" stroke="#d0d8e4" stroke-dasharray="3,3" stroke-width="1"/>`;
+        out+=`<text x="${xx}" y="${m.top+plotH+16}" font-size="10.5" text-anchor="middle" fill="#3a4a5c">${fmt(xv,0)}</text>`;
+      }
+      for (let i=0;i<=2;i++) {
+        const rv=(maxResidual/2)*i, yy=yL(rv);
+        out+=`<line x1="${m.left}" y1="${yy}" x2="${m.left+plotW}" y2="${yy}" stroke="#d0d8e4" stroke-width="1"/>`;
+        out+=`<text x="${m.left-8}" y="${yy+4}" font-size="10.5" text-anchor="end" fill="#3a4a5c">${fmt(rv,0)}</text>`;
+      }
+      for (let i=0;i<=9;i++) {
+        const h=minHgl+((maxHgl-minHgl)/9)*i, yy=yR(h);
+        out+=`<text x="${m.left+plotW+8}" y="${yy+4}" font-size="10.5" fill="#1b46ff">${fmt(h,0)}</text>`;
+      }
+      // Axes
+      out+=`<line x1="${m.left}" y1="${m.top}" x2="${m.left}" y2="${m.top+plotH}" stroke="${state.residual.elevation?"#3a4a5c":"#b0b8c4"}" stroke-width="1.5"/>`;
+      out+=`<line x1="${m.left}" y1="${m.top+plotH}" x2="${m.left+plotW}" y2="${m.top+plotH}" stroke="#3a4a5c" stroke-width="1.5"/>`;
+      out+=`<line x1="${m.left+plotW}" y1="${m.top}" x2="${m.left+plotW}" y2="${m.top+plotH}" stroke="#1b46ff" stroke-width="1.5"/>`;
+
+      if (pts.length) {
+        let pathR="", pathH="";
+        pts.forEach((p,idx)=>{
+          const cx=x(p.flow), cy1=yL(p.residual), cy2=yR(p.hgl);
+          pathR+=`${idx?"L":"M"}${cx},${cy1} `;
+          pathH+=`${idx?"L":"M"}${cx},${cy2} `;
+        });
+        // Shaded area under HGL
+        const firstX=x(pts[0].flow), lastX=x(pts[pts.length-1].flow);
+        out+=`<path d="${pathH.trim()} L${lastX},${m.top+plotH} L${firstX},${m.top+plotH} Z" fill="rgba(27,70,255,0.07)"/>`;
+        out+=`<path d="${pathH.trim()}" fill="none" stroke="#1b46ff" stroke-width="2"/>`;
+        out+=`<path d="${pathR.trim()}" fill="none" stroke="#0d3b8c" stroke-width="2" stroke-dasharray="0"/>`;
+
+        // Test point
+        const testFlow=totalCalculatedFlow(), testRes=num(state.residual.residualPressure);
+        if (testFlow!==null&&testRes!==null&&Number.isFinite(testFlow)&&Number.isFinite(testRes)) {
+          out+=`<circle cx="${x(testFlow)}" cy="${yL(testRes)}" r="6" fill="#0d3b8c" stroke="#fff" stroke-width="2"/>`;
+        }
+        // 20 PSI point
+        const flow20=projectedFlow(20);
+        if (flow20!==null&&Number.isFinite(flow20)) {
+          out+=`<circle cx="${x(flow20)}" cy="${yL(20)}" r="6" fill="white" stroke="#1b46ff" stroke-width="2"/>`;
+        }
+      } else {
+        out+=`<text x="${W/2}" y="${H/2+4}" font-size="12" text-anchor="middle" fill="#8097b1" font-style="italic">Enter values to display chart</text>`;
+      }
+
+      // Axis labels
+      out+=`<text x="${W/2}" y="${H-4}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#3a4a5c">Hydrant Flow (GPM)</text>`;
+      out+=`<text x="14" y="${H/2}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#3a4a5c" transform="rotate(-90 14 ${H/2})">Residual Pressure (PSI)</text>`;
+      out+=`<text x="${W-10}" y="${H/2}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#1b46ff" transform="rotate(90 ${W-10} ${H/2})">Residual HGL (FT)</text>`;
+
+      svg.innerHTML=out;
+    }
+
+    // ── Submit ─────────────────────────────────────────────────────────────────
+    function showSubmitPopup(msg, isError=false) {
+      const popup=document.getElementById("submitPopup");
+      const header=document.getElementById("submitPopupHeader");
+      const body=document.getElementById("submitPopupMessage");
+      if (!popup||!header||!body) return;
+      header.textContent=isError?"Submission Failed":"Submission Status";
+      header.style.background=isError?"#fdecec":"#dce8f8";
+      header.style.color=isError?"#b42318":"#0d3b8c";
+      body.textContent=msg||"";
+      body.style.color=isError?"#b42318":"#1a2333";
+      popup.style.display="flex";
+    }
+    function closeSubmitPopup() { document.getElementById("submitPopup").style.display="none"; }
+
+    function setSubmitStatus(msg, isError=false) {
+      const el=document.getElementById("submitStatus");
+      if (!el) return;
+      el.textContent=msg||"";
+      el.style.color=isError?"#b42318":"#5b6470";
+    }
+
+    function toNullableNumber(v) {
+      if (v===null||v===undefined) return null;
+      const s=String(v).trim();
+      if (!s) return null;
+      const n=Number(s);
+      return Number.isFinite(n)?n:NaN;
+    }
+
+    function validateSubmission() {
+      const errs=[];
+      const sp=toNullableNumber(state.residual.staticPressure);
+      const rp=toNullableNumber(state.residual.residualPressure);
+      if (String(state.residual.staticPressure??"").trim()==="") errs.push("Measured Static Pressure is required.");
+      else if (Number.isNaN(sp)) errs.push("Measured Static Pressure must be numeric.");
+      if (String(state.residual.residualPressure??"").trim()==="") errs.push("Measured Residual Pressure is required.");
+      else if (Number.isNaN(rp)) errs.push("Measured Residual Pressure must be numeric.");
+      for (let i=0;i<state.flowCount;i++) {
+        const raw=String(state.flowHydrants[i]?.pitot??"").trim();
+        const p=toNullableNumber(state.flowHydrants[i]?.pitot);
+        if (!raw) errs.push(`Pitot Tube Reading for Flow Hydrant ${i+1} is required.`);
+        else if (Number.isNaN(p)) errs.push(`Pitot Tube Reading for Flow Hydrant ${i+1} must be numeric.`);
+      }
+      return errs;
+    }
+
+    function getUpdateAttributes() {
+      const attrs={};
+      const oid=currentFeatureInfo.objectIdFieldName||"OBJECTID";
+      attrs[oid]=currentFeatureInfo.objectId;
+      attrs.res_static_pressure=toNullableNumber(state.residual.staticPressure);
+      attrs.res_residual_pressure=toNullableNumber(state.residual.residualPressure);
+      attrs.flow1_pitot=toNullableNumber(state.flowHydrants[0]?.pitot);
+      attrs.flow2_pitot=toNullableNumber(state.flowHydrants[1]?.pitot);
+      attrs.flow3_pitot=toNullableNumber(state.flowHydrants[2]?.pitot);
+      attrs.ops_submitted_at=Date.now();
+      attrs.ops_submit_status="Submitted";
+      return attrs;
+    }
+
+    async function submitToAgol() {
+      const btn=document.getElementById("submitBtn");
+      const jobId=getJobIdFromUrl();
+      if (!jobId) { const m="Missing job_id in URL."; setSubmitStatus(m,true); showSubmitPopup(m,true); return; }
+      if (currentFeatureInfo.objectId===null||currentFeatureInfo.objectId===undefined) {
+        const m="Could not find matching record ObjectID. Refresh and try again.";
+        setSubmitStatus(m,true); showSubmitPopup(m,true); return;
+      }
+      const errs=validateSubmission();
+      if (errs.length) { const m=errs.join(" "); setSubmitStatus(m,true); showSubmitPopup(m,true); return; }
+      const payload=new URLSearchParams();
+      payload.set("f","json");
+      payload.set("features",JSON.stringify([{attributes:getUpdateAttributes()}]));
+      try {
+        btn.disabled=true; setSubmitStatus("Submitting...");
+        const resp=await fetch(`${AGOL_LAYER_URL}/updateFeatures`,{
+          method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+          body:payload.toString()
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const result=await resp.json();
+        const edit=result.updateResults&&result.updateResults[0];
+        if (!edit||edit.success!==true) {
+          const e=edit&&edit.error?`${edit.error.code||""} ${edit.error.description||"Unknown error."}`.trim():"Unknown error.";
+          throw new Error(e);
+        }
+        const m=`Submitted successfully for job_id ${jobId}.`;
+        setSubmitStatus(m); showSubmitPopup(m,false);
+      } catch(e) {
+        const m=`Submit failed. ${e.message}`; setSubmitStatus(m,true); showSubmitPopup(m,true);
+      } finally { btn.disabled=false; }
+    }
+
+    function resetState() {
+      state.project=""; state.testDate=""; state.testTime=""; state.testDateTime=""; state.conductedBy="";
+      state.residual={location:"",id:"",elevation:"",staticPressure:"",residualPressure:""};
+      state.flowHydrants=[
+        {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""},
+        {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""},
+        {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""}
+      ];
+      state.flowCount=1;
+      applyDefaults(); renderTable();
+    }
+
+    // ── Event listeners ────────────────────────────────────────────────────────
+    document.getElementById("printBtn").addEventListener("click",()=>window.print());
+    document.getElementById("resetBtn").addEventListener("click",()=>resetState());
+    document.getElementById("submitBtn").addEventListener("click",()=>submitToAgol());
+    document.getElementById("submitPopupOkBtn").addEventListener("click",closeSubmitPopup);
+    document.getElementById("submitPopup").addEventListener("click",e=>{
+      if(e.target.id==="submitPopup") closeSubmitPopup();
     });
-  });
 
-  // meta fields
-  ["project","conductedBy","testDate","testTime"].forEach(id=>{
-    const el=document.getElementById("fld_"+id);
-    if(el) el.addEventListener("input",e=>{
-      state[id]=e.target.value;
-      if(id==="testDate"||id==="testTime") state.testDateTime=[state.testDate||"",state.testTime||""].filter(Boolean).join("T");
-    });
-  });
-}
-
-function setVal(path,val){
-  const keys=path.split(".");let ref=state;
-  for(let i=0;i<keys.length-1;i++) ref=ref[keys[i]];
-  ref[keys[keys.length-1]]=val;
-}
-
-function renderChart(){
-  const svg=document.getElementById("chartSvg");
-  const pts=chartPoints();
-  const W=780,H=195,m={top:16,right:68,bottom:38,left:58};
-  const pw=W-m.left-m.right,ph=H-m.top-m.bottom;
-
-  const maxFlow=Math.max(10,...pts.map(p=>p.flow||0));
-  const maxRes=Math.max(10,...pts.map(p=>p.residual||0));
-  const minHgl=pts.length?Math.min(...pts.map(p=>p.hgl)):850;
-  const maxHgl=pts.length?Math.max(...pts.map(p=>p.hgl)):1000;
-
-  const x=v=>m.left+(v/maxFlow)*pw;
-  const yL=v=>m.top+ph-(v/maxRes)*ph;
-  const yR=v=>{const span=Math.max(1,maxHgl-minHgl);return m.top+ph-((v-minHgl)/span)*ph;};
-
-  let o="";
-  o+=`<rect x="0" y="0" width="${W}" height="${H}" fill="white"/>`;
-
-  // Grid
-  for(let i=0;i<=5;i++){
-    const xv=(maxFlow/5)*i,xx=x(xv);
-    o+=`<line x1="${xx}" y1="${m.top}" x2="${xx}" y2="${m.top+ph}" stroke="#e8e7f0" stroke-width="1"/>`;
-    o+=`<text x="${xx}" y="${m.top+ph+14}" font-size="10" text-anchor="middle" fill="#9898aa" font-family="DM Mono,monospace">${fmt(xv,0)}</text>`;
-  }
-  for(let i=0;i<=4;i++){
-    const rv=(maxRes/4)*i,yy=yL(rv);
-    o+=`<line x1="${m.left}" y1="${yy}" x2="${m.left+pw}" y2="${yy}" stroke="#e8e7f0" stroke-width="1"/>`;
-    o+=`<text x="${m.left-6}" y="${yy+4}" font-size="10" text-anchor="end" fill="#6b6b80" font-family="DM Mono,monospace">${fmt(rv,0)}</text>`;
-  }
-  for(let i=0;i<=4;i++){
-    const hv=minHgl+((maxHgl-minHgl)/4)*i,yy=yR(hv);
-    o+=`<text x="${m.left+pw+6}" y="${yy+4}" font-size="10" fill="#2d5fa8" font-family="DM Mono,monospace">${fmt(hv,0)}</text>`;
-  }
-
-  // Axes
-  o+=`<line x1="${m.left}" y1="${m.top}" x2="${m.left}" y2="${m.top+ph}" stroke="#d0cfda" stroke-width="1"/>`;
-  o+=`<line x1="${m.left}" y1="${m.top+ph}" x2="${m.left+pw}" y2="${m.top+ph}" stroke="#d0cfda" stroke-width="1"/>`;
-  o+=`<line x1="${m.left+pw}" y1="${m.top}" x2="${m.left+pw}" y2="${m.top+ph}" stroke="#d0cfda" stroke-width="1"/>`;
-
-  if(pts.length){
-    let pathRes="",pathHgl="";
-    pts.forEach((p,i)=>{
-      const cx=x(p.flow),cy1=yL(p.residual),cy2=yR(p.hgl);
-      pathRes+=(i?"L":"M")+cx+","+cy1+" ";
-      pathHgl+=(i?"L":"M")+cx+","+cy2+" ";
-    });
-    o+=`<path d="${pathHgl.trim()}" fill="none" stroke="#2d5fa8" stroke-width="2" stroke-linejoin="round"/>`;
-    o+=`<path d="${pathRes.trim()}" fill="none" stroke="#1a1a22" stroke-width="1.5" stroke-linejoin="round"/>`;
-
-    const tf=totalCalcFlow(),tr=num(state.residual.residualPressure);
-    if(tf!==null&&tr!==null&&Number.isFinite(tf)&&Number.isFinite(tr))
-      o+=`<circle cx="${x(tf)}" cy="${yL(tr)}" r="5" fill="#2d5fa8" stroke="white" stroke-width="2"/>`;
-
-    const f20=projectedFlow(20);
-    if(f20!==null&&Number.isFinite(f20))
-      o+=`<circle cx="${x(f20)}" cy="${yL(20)}" r="5" fill="white" stroke="#2d5fa8" stroke-width="2"/>`;
-  }
-
-  // Axis labels
-  o+=`<text x="${W/2}" y="${H-2}" font-size="10" font-weight="500" text-anchor="middle" fill="#6b6b80" font-family="DM Sans,sans-serif">Hydrant Flow (GPM)</text>`;
-  o+=`<text x="12" y="${m.top+ph/2}" font-size="10" font-weight="500" text-anchor="middle" transform="rotate(-90 12 ${m.top+ph/2})" fill="#3d3d4e" font-family="DM Sans,sans-serif">Residual (PSI)</text>`;
-  o+=`<text x="${W-10}" y="${m.top+ph/2}" font-size="10" font-weight="500" text-anchor="middle" transform="rotate(90 ${W-10} ${m.top+ph/2})" fill="#2d5fa8" font-family="DM Sans,sans-serif">HGL (FT)</text>`;
-
-  svg.innerHTML=o;
-}
-
-
-function toNullableNumber(v){if(v===null||v===undefined)return null;const s=String(v).trim();if(!s)return null;const n=Number(s);return Number.isFinite(n)?n:NaN;}
-
-function validateSubmission(){
-  const errors=[];
-  const sp=toNullableNumber(state.residual.staticPressure);
-  const rp=toNullableNumber(state.residual.residualPressure);
-  if(String(state.residual.staticPressure??"")==="")errors.push("Measured Static Pressure is required.");
-  else if(Number.isNaN(sp))errors.push("Static Pressure must be numeric.");
-  if(String(state.residual.residualPressure??"")==="")errors.push("Measured Residual Pressure is required.");
-  else if(Number.isNaN(rp))errors.push("Residual Pressure must be numeric.");
-  for(let i=0;i<state.flowCount;i++){
-    const pt=toNullableNumber(state.flowHydrants[i]?.pitot);
-    if(String(state.flowHydrants[i]?.pitot??"")==="")errors.push(`Pitot reading for Flow Hydrant ${i+1} is required.`);
-    else if(Number.isNaN(pt))errors.push(`Pitot reading for Flow Hydrant ${i+1} must be numeric.`);
-  }
-  return errors;
-}
-
-function showPopup(msg,isErr){
-  const popup=document.getElementById("submitPopup");
-  const header=document.getElementById("submitPopupHeader");
-  const body=document.getElementById("submitPopupMessage");
-  header.textContent=isErr?"Submission Failed":"Submitted Successfully";
-  header.className="popup-header"+(isErr?" error":"");
-  body.textContent=msg||"";
-  popup.style.display="flex";
-}
-function closePopup(){document.getElementById("submitPopup").style.display="none";}
-
-function setStatus(msg,isErr){
-  const el=document.getElementById("submitStatus");
-  el.textContent=msg||"";el.className="submit-status"+(isErr?" error":"");
-}
-
-async function submitToAgol(){
-  const jobId=getJobIdFromUrl();
-  if(!jobId){showPopup("Missing job_id in URL. Cannot submit.",true);return;}
-  if(currentFeatureInfo.objectId===null||currentFeatureInfo.objectId===undefined){showPopup("Could not find matching record ObjectID. Refresh and try again.",true);return;}
-  const errors=validateSubmission();
-  if(errors.length){showPopup(errors.join(" "),true);return;}
-  const attrs={};
-  attrs[currentFeatureInfo.objectIdFieldName||"OBJECTID"]=currentFeatureInfo.objectId;
-  attrs.res_static_pressure=toNullableNumber(state.residual.staticPressure);
-  attrs.res_residual_pressure=toNullableNumber(state.residual.residualPressure);
-  attrs.flow1_pitot=toNullableNumber(state.flowHydrants[0]?.pitot);
-  attrs.flow2_pitot=toNullableNumber(state.flowHydrants[1]?.pitot);
-  attrs.flow3_pitot=toNullableNumber(state.flowHydrants[2]?.pitot);
-  attrs.ops_submitted_at=Date.now();
-  attrs.ops_submit_status="Submitted";
-  const btn=document.getElementById("submitBtn");
-  btn.disabled=true;setStatus("Submitting...");
-  try{
-    const payload=new URLSearchParams();
-    payload.set("f","json");payload.set("features",JSON.stringify([{attributes:attrs}]));
-    const res=await fetch(`${AGOL_LAYER_URL}/updateFeatures`,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},body:payload.toString()});
-    if(!res.ok)throw new Error(`HTTP ${res.status}`);
-    const result=await res.json();
-    const edit=result.updateResults&&result.updateResults[0];
-    if(!edit||edit.success!==true)throw new Error(edit?.error?`${edit.error.code||""} ${edit.error.description||""}`.trim():"Unknown error");
-    const msg=`Submitted successfully for job_id ${jobId}.`;
-    setStatus(msg);showPopup(msg,false);
-  }catch(e){const msg=`Submit failed: ${e.message}`;setStatus(msg,true);showPopup(msg,true);}
-  finally{btn.disabled=false;}
-}
-
-
-document.getElementById("printBtn").addEventListener("click",()=>window.print());
-document.getElementById("submitBtn").addEventListener("click",submitToAgol);
-document.getElementById("submitPopupOkBtn").addEventListener("click",closePopup);
-document.getElementById("submitPopup").addEventListener("click",e=>{if(e.target.id==="submitPopup")closePopup();});
-
-async function initApp(){
-  defaultsData=await loadDefaultsFromAgol();
-  applyDefaults();
-  ["project","conductedBy","testDate","testTime"].forEach(id=>{
-    const el=document.getElementById("fld_"+id);
-    if(el)el.value=state[id]||"";
-  });
-  renderTable();
-}
-initApp();
-</script>
+    async function initApp() {
+      defaultsData=await loadDefaultsFromAgol();
+      applyDefaults(); renderTable();
+    }
+    initApp();
+  </script>
 </body>
 </html>
