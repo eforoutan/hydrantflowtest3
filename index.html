@@ -63,7 +63,6 @@
       width: auto;
       display: block;
     }
-    /* Fallback placeholder shown when no img src */
     .logo-placeholder {
       height: 46px;
       width: 140px;
@@ -361,8 +360,9 @@
     }
   </style>
 
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-	
+  <!-- ── EDIT 1: EmailJS SDK ─────────────────────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
 </head>
 <body>
   <div class="page">
@@ -370,13 +370,7 @@
     <!-- ── PAGE HEADER ─────────────────────────── -->
     <div class="page-header">
       <div class="logo-area">
-	  <img src="logo.png" alt="City of Stillwater">
-        <!--
-          Replace the div below with an <img> tag pointing to your logo, e.g.:
-          
-          The image will be shown at 46px tall (36px in print).
-        -->
-         <!-- <div class="logo-placeholder">Your Logo Here</div>-->
+        <img src="logo.png" alt="City of Stillwater">
       </div>
 
       <div class="page-title-area">
@@ -436,12 +430,12 @@
   </div>
 
   <script>
-	// ── EmailJS config ─────────────────────────────────────────────────────────
-	const EMAILJS_PUBLIC_KEY  = "y12XW0cJp4pIeig2Z";   // from EmailJS Account page
-	const EMAILJS_SERVICE_ID  = "service_0l0o0ad";   // e.g. service_abc123
-	const EMAILJS_TEMPLATE_ID = "template_ye5fras";  // e.g. template_xyz789
-	emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
-	  
+    // ── EDIT 2: EmailJS config + init ──────────────────────────────────────────
+    const EMAILJS_PUBLIC_KEY  = "y12XW0cJp4pIeig2Z";   // from EmailJS Account page
+    const EMAILJS_SERVICE_ID  = "service_0l0o0ad";      // your Service ID
+    const EMAILJS_TEMPLATE_ID = "template_ye5fras";     // your Template ID
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
     // ── AGOL config ────────────────────────────────────────────────────────────
     const AGOL_LAYER_URL = new URLSearchParams(window.location.search).get("layer_url")
       || "https://services.arcgis.com/RPfJX2yEEVtopacQ/arcgis/rest/services/HydrantFlowTestRequests/FeatureServer/0";
@@ -552,7 +546,6 @@
     function lookupElevation(id) {
       const key = String(id||"").trim();
       if (!key) return "";
-      // ELEVATIONS is loaded from elevations.js
       if (typeof ELEVATIONS === "undefined") return "N/A";
       const val = ELEVATIONS[key];
       if (val===undefined||val===null) return "Not Found";
@@ -653,17 +646,14 @@
       html += topRow("Test Date and Time:", "testDateTime", state.testDateTime, headers.length);
       html += topRow("Conducted By:", "conductedBy", state.conductedBy, headers.length);
 
-      // Spacer
       html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length+2).fill('<td class="no-border"></td>').join("")}</tr>`;
 
-      // Column headers
       html += `<tr><td class="label section-top no-border"></td>`;
       headers.forEach((h,idx) => {
         html += `<th class="header-cell ${idx===headers.length-1?"subhead-total":""}">${esc(h)}</th>`;
       });
       html += `<td class="no-border"></td><td class="no-border"></td></tr>`;
 
-      // Data rows
       const dataRow = (label, residualCell, flowCells, totalCell, unit, note) =>
         `<tr><td class="label">${label}</td>${residualCell}${flowCells}${totalCell}${unitCell(unit)}${inlineNote(note)}</tr>`;
 
@@ -692,7 +682,6 @@
         Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].diameter,`flowHydrants.${i}.diameter`,"calc center")).join(""),
         calcCell("N/A"),"IN","2.5 IN typical");
 
-      // Operations banner
       html += `<tr><td class="label no-border" style="height:4px;"></td><td class="section-banner" colspan="${headers.length}">Operations — fill in during the test</td><td class="no-border"></td><td class="no-border"></td></tr>`;
 
       html += `<tr><td class="label section-top">Measured Static Pressure:</td>`;
@@ -710,7 +699,6 @@
       for (let i=0;i<state.flowCount;i++) html += inputCell(state.flowHydrants[i].pitot,`flowHydrants.${i}.pitot`,"input center","numericText");
       html += calcCell("N/A"); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
 
-      // Spacer row
       html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length).fill('<td class="calc"></td>').join("")}<td class="no-border"></td><td class="no-border"></td></tr>`;
 
       html += dataRow("Static HGL During Test:",
@@ -787,7 +775,6 @@
 
       let out="";
       out+=`<rect x="0" y="0" width="${W}" height="${H}" fill="#f8fafd"/>`;
-      // Grid
       for (let i=0;i<=5;i++) {
         const xv=(maxFlow/5)*i, xx=x(xv);
         out+=`<line x1="${xx}" y1="${m.top}" x2="${xx}" y2="${m.top+plotH}" stroke="#d0d8e4" stroke-dasharray="3,3" stroke-width="1"/>`;
@@ -802,7 +789,6 @@
         const h=minHgl+((maxHgl-minHgl)/9)*i, yy=yR(h);
         out+=`<text x="${m.left+plotW+8}" y="${yy+4}" font-size="10.5" fill="#1b46ff">${fmt(h,0)}</text>`;
       }
-      // Axes
       out+=`<line x1="${m.left}" y1="${m.top}" x2="${m.left}" y2="${m.top+plotH}" stroke="${state.residual.elevation?"#3a4a5c":"#b0b8c4"}" stroke-width="1.5"/>`;
       out+=`<line x1="${m.left}" y1="${m.top+plotH}" x2="${m.left+plotW}" y2="${m.top+plotH}" stroke="#3a4a5c" stroke-width="1.5"/>`;
       out+=`<line x1="${m.left+plotW}" y1="${m.top}" x2="${m.left+plotW}" y2="${m.top+plotH}" stroke="#1b46ff" stroke-width="1.5"/>`;
@@ -814,18 +800,14 @@
           pathR+=`${idx?"L":"M"}${cx},${cy1} `;
           pathH+=`${idx?"L":"M"}${cx},${cy2} `;
         });
-        // Shaded area under HGL
         const firstX=x(pts[0].flow), lastX=x(pts[pts.length-1].flow);
         out+=`<path d="${pathH.trim()} L${lastX},${m.top+plotH} L${firstX},${m.top+plotH} Z" fill="rgba(27,70,255,0.07)"/>`;
         out+=`<path d="${pathH.trim()}" fill="none" stroke="#1b46ff" stroke-width="2"/>`;
         out+=`<path d="${pathR.trim()}" fill="none" stroke="#0d3b8c" stroke-width="2" stroke-dasharray="0"/>`;
-
-        // Test point
         const testFlow=totalCalculatedFlow(), testRes=num(state.residual.residualPressure);
         if (testFlow!==null&&testRes!==null&&Number.isFinite(testFlow)&&Number.isFinite(testRes)) {
           out+=`<circle cx="${x(testFlow)}" cy="${yL(testRes)}" r="6" fill="#0d3b8c" stroke="#fff" stroke-width="2"/>`;
         }
-        // 20 PSI point
         const flow20=projectedFlow(20);
         if (flow20!==null&&Number.isFinite(flow20)) {
           out+=`<circle cx="${x(flow20)}" cy="${yL(20)}" r="6" fill="white" stroke="#1b46ff" stroke-width="2"/>`;
@@ -834,7 +816,6 @@
         out+=`<text x="${W/2}" y="${H/2+4}" font-size="12" text-anchor="middle" fill="#8097b1" font-style="italic">Enter values to display chart</text>`;
       }
 
-      // Axis labels
       out+=`<text x="${W/2}" y="${H-4}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#3a4a5c">Hydrant Flow (GPM)</text>`;
       out+=`<text x="14" y="${H/2}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#3a4a5c" transform="rotate(-90 14 ${H/2})">Residual Pressure (PSI)</text>`;
       out+=`<text x="${W-10}" y="${H/2}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#1b46ff" transform="rotate(90 ${W-10} ${H/2})">Residual HGL (FT)</text>`;
@@ -929,8 +910,28 @@
           const e=edit&&edit.error?`${edit.error.code||""} ${edit.error.description||"Unknown error."}`.trim():"Unknown error.";
           throw new Error(e);
         }
+
         const m=`Submitted successfully for job_id ${jobId}.`;
         setSubmitStatus(m); showSubmitPopup(m,false);
+
+        // ── EDIT 3: Send email notification via EmailJS ────────────────────────
+        try {
+          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            job_id:            jobId,
+            project:           state.project                    || "(not entered)",
+            submitted_at:      new Date().toLocaleString(),
+            static_pressure:   state.residual.staticPressure   || "—",
+            residual_pressure: state.residual.residualPressure || "—",
+            flow1_pitot:       state.flowHydrants[0]?.pitot    || "—",
+            flow2_pitot:       state.flowHydrants[1]?.pitot    || "—",
+            flow3_pitot:       state.flowHydrants[2]?.pitot    || "—",
+          });
+          console.log("Email notification sent.");
+        } catch (emailErr) {
+          console.warn("Email send failed (data still saved):", emailErr);
+        }
+        // ── End EmailJS ────────────────────────────────────────────────────────
+
       } catch(e) {
         const m=`Submit failed. ${e.message}`; setSubmitStatus(m,true); showSubmitPopup(m,true);
       } finally { btn.disabled=false; }
