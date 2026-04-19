@@ -360,6 +360,9 @@
       .page-header { flex-wrap: wrap; }
     }
   </style>
+
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+	
 </head>
 <body>
   <div class="page">
@@ -433,6 +436,12 @@
   </div>
 
   <script>
+	// ── EmailJS config ─────────────────────────────────────────────────────────
+	const EMAILJS_PUBLIC_KEY  = "y12XW0cJp4pIeig2Z";   // from EmailJS Account page
+	const EMAILJS_SERVICE_ID  = "service_0l0o0ad";   // e.g. service_abc123
+	const EMAILJS_TEMPLATE_ID = "template_ye5fras";  // e.g. template_xyz789
+	emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+	  
     // ── AGOL config ────────────────────────────────────────────────────────────
     const AGOL_LAYER_URL = new URLSearchParams(window.location.search).get("layer_url")
       || "https://services.arcgis.com/RPfJX2yEEVtopacQ/arcgis/rest/services/HydrantFlowTestRequests/FeatureServer/0";
