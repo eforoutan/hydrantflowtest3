@@ -925,6 +925,7 @@
             flow1_pitot:       state.flowHydrants[0]?.pitot    || "—",
             flow2_pitot:       state.flowHydrants[1]?.pitot    || "—",
             flow3_pitot:       state.flowHydrants[2]?.pitot    || "—",
+            form_url:          window.location.href,
           });
           console.log("Email notification sent.");
         } catch (emailErr) {
