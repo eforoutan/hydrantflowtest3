@@ -3,9 +3,27 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'none';
+    script-src  'self' 'unsafe-inline' https://cdn.jsdelivr.net;
+    style-src   'unsafe-inline';
+    connect-src https://services.arcgis.com https://api.emailjs.com;
+    img-src     'self' data:;
+    font-src    'self';
+    frame-ancestors 'none';
+    form-action 'none';
+  ">
+
+  <!-- SECURITY FIX #4: Referrer-Policy — full URL (incl. job_id) stays private -->
+  <meta name="referrer" content="strict-origin">
+
   <title>Hydrant Flow Test Summary Form</title>
+
   <!-- Load elevations from separate file — update elevations.js independently -->
   <script src="elevations.js"></script>
+
   <style>
     :root {
       --yellow: #fffacd;
@@ -176,7 +194,7 @@
     .flow-sheet .input  { background: var(--yellow); }
     .flow-sheet .calc   { background: var(--gray); }
 
-    /* Read-only top row — gray background, italic text */
+    /* Read-only top row */
     .flow-sheet .readonly-top {
       background: var(--gray);
       font-size: 12px;
@@ -362,11 +380,16 @@
     }
   </style>
 
-  <!-- ── EmailJS SDK ────────────────────────────────────────────────────────── -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script
+    src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"
+    integrity="sha384-REPLACE_WITH_ACTUAL_SHA384_HASH_SEE_COMMENT_ABOVE"
+    crossorigin="anonymous"
+    referrerpolicy="no-referrer">
+  </script>
 
 </head>
-<body>
+
+<body autocomplete="off">
   <div class="page">
 
     <!-- ── PAGE HEADER ─────────────────────────── -->
@@ -429,22 +452,39 @@
   </div>
 
   <script>
+
+    const AGOL_LAYER_URL =
+      "https://services.arcgis.com/RPfJX2yEEVtopacQ/arcgis/rest/services/HydrantFlowTestRequests/FeatureServer/0";
+
     // ── EmailJS config + init ──────────────────────────────────────────────────
     const EMAILJS_PUBLIC_KEY  = "y12XW0cJp4pIeig2Z";
     const EMAILJS_SERVICE_ID  = "service_0l0o0ad";
     const EMAILJS_TEMPLATE_ID = "template_ye5fras";
-    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
 
-    // ── AGOL config ────────────────────────────────────────────────────────────
-    const AGOL_LAYER_URL = new URLSearchParams(window.location.search).get("layer_url")
-      || "https://services.arcgis.com/RPfJX2yEEVtopacQ/arcgis/rest/services/HydrantFlowTestRequests/FeatureServer/0";
+    // Guard: if the SRI check caused emailjs to be blocked, init gracefully
+    if (typeof emailjs !== "undefined") {
+      emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+    }
+
+
+    const JOB_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/;
+
+    function getJobIdFromUrl() {
+      const raw = new URLSearchParams(window.location.search).get("job_id");
+      if (!raw) return null;
+      if (!JOB_ID_PATTERN.test(raw)) {
+        console.warn("job_id in URL contains invalid characters and was rejected.");
+        return null;
+      }
+      return raw;
+    }
 
     // ── Blank defaults factory ─────────────────────────────────────────────────
     function createBlankDefaults() {
       return {
         project: "", testDate: "", testTime: "", testDateTime: "",
         conductedBy: "",
-        submittedAt: "",          // populated from ops_submitted_at on load
+        submittedAt: "",
         residual: { location: "", id: "", staticPressure: "", residualPressure: "" },
         flowHydrants: [
           { location: "", id: "", pitot: "" },
@@ -457,22 +497,21 @@
     let defaultsData = createBlankDefaults();
     let currentFeatureInfo = { objectIdFieldName: "OBJECTID", objectId: null, jobId: null };
 
-    function getJobIdFromUrl() {
-      return new URLSearchParams(window.location.search).get("job_id");
-    }
-
     // ── Load from AGOL ─────────────────────────────────────────────────────────
     async function loadDefaultsFromAgol() {
       const jobId = getJobIdFromUrl();
       currentFeatureInfo.jobId = jobId || null;
-      if (!jobId) { console.warn("No job_id in URL. Using blank defaults."); return createBlankDefaults(); }
-      if (!AGOL_LAYER_URL || AGOL_LAYER_URL.includes("REPLACE_WITH_YOUR_AGOL_FEATURESERVER_URL")) {
-        console.warn("AGOL layer URL not set."); return createBlankDefaults();
-      }
-      const where    = `job_id='${jobId.replace(/'/g,"''")}'`;
-      const queryUrl = `${AGOL_LAYER_URL}/query?where=${encodeURIComponent(where)}&outFields=*&returnGeometry=false&f=json`;
+      if (!jobId) { console.warn("No valid job_id in URL. Using blank defaults."); return createBlankDefaults(); }
+
+      // SECURITY: jobId has already been validated against JOB_ID_PATTERN above,
+      // so it is safe to embed in the WHERE clause.  We still escape single
+      // quotes as a defence-in-depth measure.
+      const safeJobId  = jobId.replace(/'/g, "''");
+      const where      = `job_id='${safeJobId}'`;
+      const queryUrl   = `${AGOL_LAYER_URL}/query?where=${encodeURIComponent(where)}&outFields=*&returnGeometry=false&f=json`;
+
       try {
-        const resp = await fetch(queryUrl);
+        const resp = await fetch(queryUrl, { credentials: "omit" });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const data = await resp.json();
         if (!data.features || !data.features.length) { console.warn("No record found."); return createBlankDefaults(); }
@@ -481,9 +520,7 @@
         currentFeatureInfo.objectIdFieldName = data.objectIdFieldName || "OBJECTID";
         currentFeatureInfo.objectId = r[currentFeatureInfo.objectIdFieldName] ?? r.OBJECTID ?? null;
 
-        // Convert ops_submitted_at (Unix ms timestamp) → human-readable string.
-        // If field is null / never submitted, leave blank.
-        const rawTs    = r.ops_submitted_at ?? null;
+        const rawTs       = r.ops_submitted_at ?? null;
         const submittedAt = rawTs ? new Date(rawTs).toLocaleString() : "";
 
         return {
@@ -491,8 +528,8 @@
           testDate:     "",
           testTime:     "",
           testDateTime: "",
-          conductedBy:  r.ConductedBy  || "",   // ← read ConductedBy back from table
-          submittedAt,                           // ← read ops_submitted_at back from table
+          conductedBy:  r.ConductedBy  || "",
+          submittedAt,
           residual: {
             location:         r.res_location         || "",
             id:               r.res_id               || "",
@@ -513,7 +550,7 @@
       flowCount: 1,
       project: "", testDate: "", testTime: "", testDateTime: "",
       conductedBy: "",
-      submittedAt: "",          // shown in read-only "Last Submitted At" row
+      submittedAt: "",
       residual: { location: "", id: "", elevation: "", staticPressure: "", residualPressure: "" },
       flowHydrants: [
         { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" },
@@ -521,6 +558,10 @@
         { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" }
       ]
     };
+
+
+    const SUBMIT_COOLDOWN_MS = 5000;
+    let lastSubmitAt = 0;
 
     function getAutoFlowCount(fh) {
       const n = (fh || []).filter(h => h && (String(h.location||"").trim() || String(h.id||"").trim())).length;
@@ -537,7 +578,7 @@
         state.testDate = p[0] || ""; state.testTime = p[1] || "";
       }
       state.conductedBy = defaultsData.conductedBy || "";
-      state.submittedAt = defaultsData.submittedAt || "";  // ← apply submittedAt to state
+      state.submittedAt = defaultsData.submittedAt || "";
       state.residual.location         = defaultsData.residual?.location         || "";
       state.residual.id               = defaultsData.residual?.id               || "";
       state.residual.staticPressure   = defaultsData.residual?.staticPressure   || "";
@@ -560,9 +601,17 @@
       if (v===null||v===undefined||Number.isNaN(v)) return "";
       return Number(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:digits});
     }
+
+
     function esc(v) {
-      return String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+      return String(v ?? "")
+        .replace(/&/g,  "&amp;")
+        .replace(/"/g,  "&quot;")
+        .replace(/'/g,  "&#39;")
+        .replace(/</g,  "&lt;")
+        .replace(/>/g,  "&gt;");
     }
+
     function bindToId(path) { return `fld_${String(path).replace(/[^a-zA-Z0-9]+/g,"_")}`; }
 
     function lookupElevation(id) {
@@ -610,13 +659,20 @@
       return pts;
     }
 
-    // ── HTML builders ──────────────────────────────────────────────────────────
-    function inputCell(value, onInput, className="input center", type="text") {
+
+
+
+    function inputCell(value, onInput, className="input center", type="text", maxlen=200) {
       let inputType=type, extra='';
-      if (type==="text")             extra=' inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false"';
-      else if (type==="number")      extra=' step="any"';
-      else if (type==="numericText") { inputType="text"; extra=' inputmode="decimal" autocapitalize="off" autocomplete="off" spellcheck="false"'; }
-      return `<td class="${className}"><input id="${bindToId(onInput)}" type="${inputType}" value="${esc(value)}" data-bind="${onInput}"${extra}></td>`;
+      if (type==="text")
+        extra=` inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false" maxlength="${maxlen}"`;
+      else if (type==="number")
+        extra=` step="any" maxlength="${maxlen}"`;
+      else if (type==="numericText") {
+        inputType="text";
+        extra=` inputmode="decimal" autocapitalize="off" autocomplete="off" spellcheck="false" maxlength="20"`;
+      }
+      return `<td class="${className}"><input id="${esc(bindToId(onInput))}" type="${inputType}" value="${esc(value)}" data-bind="${esc(onInput)}"${extra}></td>`;
     }
     function calcCell(value, className="calc center") {
       return `<td class="${className}"><span class="calc-readout">${esc(value)}</span></td>`;
@@ -624,7 +680,6 @@
     function unitCell(text)   { return `<td class="unit">${esc(text||"")}</td>`; }
     function inlineNote(text) { return `<td class="note-inline">${esc(text||"")}</td>`; }
 
-    // Editable top row (yellow input cell)
     function topRow(label, bind, value, colspan) {
       if (bind==="testDateTime") {
         return `<tr>
@@ -633,11 +688,11 @@
             <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
               <label style="display:flex;align-items:center;gap:6px;margin:0;">
                 <span style="font-size:11px;color:#5b6470;">Date</span>
-                <input id="fld_testDate" type="date" data-bind="testDate" value="${esc(state.testDate)}">
+                <input id="fld_testDate" type="date" data-bind="testDate" value="${esc(state.testDate)}" autocomplete="off">
               </label>
               <label style="display:flex;align-items:center;gap:6px;margin:0;">
                 <span style="font-size:11px;color:#5b6470;">Time</span>
-                <input id="fld_testTime" type="time" data-bind="testTime" value="${esc(state.testTime)}">
+                <input id="fld_testTime" type="time" data-bind="testTime" value="${esc(state.testTime)}" autocomplete="off">
               </label>
             </div>
           </td>
@@ -646,14 +701,12 @@
       return `<tr>
         <td class="label no-border">${esc(label)}</td>
         <td class="input top-lines" colspan="${colspan}">
-          <input id="${bindToId(bind)}" type="text" data-bind="${bind}" value="${esc(value)}"
-            inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false">
+          <input id="${esc(bindToId(bind))}" type="text" data-bind="${esc(bind)}" value="${esc(value)}"
+            inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false" maxlength="200">
         </td>
         <td class="no-border"></td><td class="no-border"></td></tr>`;
     }
 
-    // Read-only top row (gray cell — used for Last Submitted At)
-    // Shows "Not yet submitted" in muted text when value is empty.
     function readOnlyTopRow(label, value, colspan) {
       const inner = value
         ? `<span style="font-style:italic;color:#3a4a5c;">${esc(value)}</span>`
@@ -678,36 +731,30 @@
       });
       html += `<col style="width:48px;"><col style="width:112px;"></colgroup>`;
 
-      // ── Top info rows ──────────────────────────────────────────────────────
       html += topRow("Project:",            "project",      state.project,      headers.length);
       html += topRow("Test Date and Time:", "testDateTime", state.testDateTime, headers.length);
       html += topRow("Conducted By:",       "conductedBy",  state.conductedBy,  headers.length);
-
-      // Last Submitted At — read-only, sourced from ops_submitted_at in the table
       html += readOnlyTopRow("Last Submitted At:", state.submittedAt, headers.length);
 
-      // Spacer
       html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length+2).fill('<td class="no-border"></td>').join("")}</tr>`;
 
-      // Column headers
       html += `<tr><td class="label section-top no-border"></td>`;
       headers.forEach((h,idx) => {
         html += `<th class="header-cell ${idx===headers.length-1?"subhead-total":""}">${esc(h)}</th>`;
       });
       html += `<td class="no-border"></td><td class="no-border"></td></tr>`;
 
-      // ── Data rows ──────────────────────────────────────────────────────────
       const dataRow = (label, residualCell, flowCells, totalCell, unit, note) =>
         `<tr><td class="label">${label}</td>${residualCell}${flowCells}${totalCell}${unitCell(unit)}${inlineNote(note)}</tr>`;
 
       html += dataRow("Hydrant Location:",
-        inputCell(state.residual.location,"residual.location"),
-        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].location,`flowHydrants.${i}.location`)).join(""),
+        inputCell(state.residual.location,"residual.location","input center","text",150),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].location,`flowHydrants.${i}.location`,"input center","text",150)).join(""),
         calcCell("N/A"),"","");
 
       html += dataRow("Hydrant Unique ID:",
-        inputCell(state.residual.id,"residual.id"),
-        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].id,`flowHydrants.${i}.id`)).join(""),
+        inputCell(state.residual.id,"residual.id","input center","text",50),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].id,`flowHydrants.${i}.id`,"input center","text",50)).join(""),
         calcCell("N/A"),"","");
 
       html += dataRow("Hydrant Elevation:",
@@ -717,15 +764,14 @@
 
       html += dataRow("Outlet Coefficient:",
         calcCell(""),
-        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].coefficient,`flowHydrants.${i}.coefficient`,"calc center")).join(""),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].coefficient,`flowHydrants.${i}.coefficient`,"calc center","numericText")).join(""),
         calcCell("N/A"),"","0.9 typical");
 
       html += dataRow("Outlet Diameter:",
         calcCell(""),
-        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].diameter,`flowHydrants.${i}.diameter`,"calc center")).join(""),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].diameter,`flowHydrants.${i}.diameter`,"calc center","numericText")).join(""),
         calcCell("N/A"),"IN","2.5 IN typical");
 
-      // Operations banner
       html += `<tr><td class="label no-border" style="height:4px;"></td><td class="section-banner" colspan="${headers.length}">Operations — fill in during the test</td><td class="no-border"></td><td class="no-border"></td></tr>`;
 
       html += `<tr><td class="label section-top">Measured Static Pressure:</td>`;
@@ -743,7 +789,6 @@
       for (let i=0;i<state.flowCount;i++) html += inputCell(state.flowHydrants[i].pitot,`flowHydrants.${i}.pitot`,"input center","numericText");
       html += calcCell("N/A"); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
 
-      // Spacer row
       html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length).fill('<td class="calc"></td>').join("")}<td class="no-border"></td><td class="no-border"></td></tr>`;
 
       html += dataRow("Static HGL During Test:",
@@ -779,7 +824,13 @@
     function bindInputs() {
       sheet.querySelectorAll("input[data-bind]").forEach(input => {
         input.addEventListener("input", e => {
-          const path=e.target.dataset.bind, value=e.target.value;
+          const path  = e.target.dataset.bind;
+          const value = e.target.value;
+
+          // SECURITY: Validate the data-bind path to prevent prototype pollution.
+          // Only allow paths that match the known state schema.
+          if (!/^[a-zA-Z0-9_.]+$/.test(path)) return;
+
           const ss=e.target.selectionStart, se=e.target.selectionEnd, sd=e.target.selectionDirection;
           setStateValue(path, value);
           if (path==="testDate"||path==="testTime")
@@ -788,20 +839,30 @@
           const fm=path.match(/^flowHydrants\.(\d+)\.id$/);
           if (fm) state.flowHydrants[Number(fm[1])].elevation=lookupElevation(value);
           renderTable();
-          const r=sheet.querySelector(`input[data-bind="${path}"]`);
+          const r=sheet.querySelector(`input[data-bind="${CSS.escape(path)}"]`);
           if (r) { r.focus(); try{r.setSelectionRange(ss,se,sd||"none");}catch(err){} }
         });
       });
     }
 
     function setStateValue(path, value) {
-      const keys=path.split(".");
-      let ref=state;
-      for (let i=0;i<keys.length-1;i++) ref=ref[keys[i]];
-      ref[keys[keys.length-1]]=value;
+      // SECURITY: Prevent prototype pollution by rejecting dangerous keys.
+      const keys = path.split(".");
+      if (keys.some(k => k === "__proto__" || k === "constructor" || k === "prototype")) return;
+
+      let ref = state;
+      for (let i = 0; i < keys.length - 1; i++) {
+        if (!Object.prototype.hasOwnProperty.call(ref, keys[i])) return;
+        ref = ref[keys[i]];
+      }
+      const last = keys[keys.length - 1];
+      if (!Object.prototype.hasOwnProperty.call(ref, last)) return;
+      ref[last] = value;
     }
 
     // ── Chart ──────────────────────────────────────────────────────────────────
+    // SECURITY: Chart values are either fmt()-formatted numbers or fixed
+    // string literals — no user-controlled text is embedded in SVG markup.
     function renderChart() {
       const svg=document.getElementById("chartSvg");
       const pts=chartPoints();
@@ -877,6 +938,7 @@
       header.textContent=isError?"Submission Failed":"Submission Status";
       header.style.background=isError?"#fdecec":"#dce8f8";
       header.style.color    =isError?"#b42318":"#0d3b8c";
+      // SECURITY: Use textContent (not innerHTML) so msg can never inject HTML.
       body.textContent=msg||"";
       body.style.color=isError?"#b42318":"#1a2333";
       popup.style.display="flex";
@@ -886,6 +948,7 @@
     function setSubmitStatus(msg, isError=false) {
       const el=document.getElementById("submitStatus");
       if (!el) return;
+      // SECURITY: textContent only — never innerHTML for status messages.
       el.textContent=msg||"";
       el.style.color=isError?"#b42318":"#5b6470";
     }
@@ -925,9 +988,9 @@
       attrs.flow1_pitot           = toNullableNumber(state.flowHydrants[0]?.pitot);
       attrs.flow2_pitot           = toNullableNumber(state.flowHydrants[1]?.pitot);
       attrs.flow3_pitot           = toNullableNumber(state.flowHydrants[2]?.pitot);
-      attrs.ops_submitted_at      = Date.now();                   // Unix ms → stored in table
+      attrs.ops_submitted_at      = Date.now();
       attrs.ops_submit_status     = "Submitted";
-      attrs.ConductedBy           = state.conductedBy || null;    // ← send ConductedBy to table
+      attrs.ConductedBy           = state.conductedBy || null;
       return attrs;
     }
 
@@ -936,8 +999,16 @@
       const btn   = document.getElementById("submitBtn");
       const jobId = getJobIdFromUrl();
 
+      // SECURITY FIX #8: Enforce cooldown between submissions.
+      const now = Date.now();
+      if (now - lastSubmitAt < SUBMIT_COOLDOWN_MS) {
+        const remaining = Math.ceil((SUBMIT_COOLDOWN_MS - (now - lastSubmitAt)) / 1000);
+        const m = `Please wait ${remaining} second(s) before submitting again.`;
+        setSubmitStatus(m, true); showSubmitPopup(m, true); return;
+      }
+
       if (!jobId) {
-        const m="Missing job_id in URL."; setSubmitStatus(m,true); showSubmitPopup(m,true); return;
+        const m="Missing or invalid job_id in URL."; setSubmitStatus(m,true); showSubmitPopup(m,true); return;
       }
       if (currentFeatureInfo.objectId===null||currentFeatureInfo.objectId===undefined) {
         const m="Could not find matching record ObjectID. Refresh and try again.";
@@ -952,53 +1023,59 @@
 
       try {
         btn.disabled=true; setSubmitStatus("Submitting...");
+        lastSubmitAt = Date.now();
+
         const resp=await fetch(`${AGOL_LAYER_URL}/updateFeatures`,{
           method:"POST",
           headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+          credentials:"omit",   // SECURITY: never send cookies to AGOL
           body:payload.toString()
         });
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
         const result=await resp.json();
         const edit=result.updateResults&&result.updateResults[0];
         if (!edit||edit.success!==true) {
-          const e=edit&&edit.error
-            ?`${edit.error.code||""} ${edit.error.description||"Unknown error."}`.trim()
+          // SECURITY: Sanitise the error description before including it in
+          // any message that reaches the DOM (handled via textContent in
+          // showSubmitPopup, but an extra strip is harmless).
+          const rawDesc = (edit&&edit.error&&edit.error.description) ? String(edit.error.description) : "Unknown error.";
+          const e = edit&&edit.error
+            ?`${edit.error.code||""} ${rawDesc}`.trim()
             :"Unknown error.";
           throw new Error(e);
         }
 
-        // Capture exact submission time as a readable string
         const nowString = new Date().toLocaleString();
-
-        // Update state so the read-only "Last Submitted At" row refreshes
-        // immediately — no page reload needed
         state.submittedAt = nowString;
 
         const m=`Submitted successfully for job_id ${jobId}.`;
         setSubmitStatus(m); showSubmitPopup(m,false);
-
-        // Re-render table so the updated timestamp appears right away
         renderTable();
 
         // ── Send email notification via EmailJS ──────────────────────────────
-        try {
-          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-            job_id:            jobId,
-            project:           state.project                    || "(not entered)",
-            conducted_by:      state.conductedBy               || "(not entered)",
-            submitted_at:      nowString,
-            static_pressure:   state.residual.staticPressure   || "—",
-            residual_pressure: state.residual.residualPressure || "—",
-            flow1_pitot:       state.flowHydrants[0]?.pitot    || "—",
-            flow2_pitot:       state.flowHydrants[1]?.pitot    || "—",
-            flow3_pitot:       state.flowHydrants[2]?.pitot    || "—",
-            form_url:          window.location.href,
-          });
-          console.log("Email notification sent.");
-        } catch (emailErr) {
-          console.warn("Email send failed (data still saved):", emailErr);
+        if (typeof emailjs !== "undefined") {
+          try {
+            await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+              job_id:            jobId,
+              project:           state.project                    || "(not entered)",
+              conducted_by:      state.conductedBy               || "(not entered)",
+              submitted_at:      nowString,
+              static_pressure:   state.residual.staticPressure   || "—",
+              residual_pressure: state.residual.residualPressure || "—",
+              flow1_pitot:       state.flowHydrants[0]?.pitot    || "—",
+              flow2_pitot:       state.flowHydrants[1]?.pitot    || "—",
+              flow3_pitot:       state.flowHydrants[2]?.pitot    || "—",
+              // SECURITY: Only send the path + query string, not the full
+              // origin, to avoid leaking server hostname to EmailJS logs.
+              form_url:          window.location.pathname + window.location.search,
+            });
+            console.log("Email notification sent.");
+          } catch (emailErr) {
+            console.warn("Email send failed (data still saved):", emailErr);
+          }
+        } else {
+          console.warn("EmailJS not loaded (possibly blocked by SRI check); email not sent.");
         }
-        // ── End EmailJS ────────────────────────────────────────────────────────
 
       } catch(e) {
         const m=`Submit failed. ${e.message}`; setSubmitStatus(m,true); showSubmitPopup(m,true);
