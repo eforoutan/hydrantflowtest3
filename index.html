@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hydrant Flow Test Summary Form</title>
+  <!-- Load elevations from separate file — update elevations.js independently -->
+  <script src="elevations.js"></script>
+  <style>
+    :root {
+      --yellow: #fffacd;
+      --gray: #e8eaed;
+      --line: #b0b8c4;
+      --line-strong: #3a4a5c;
+      --paper: #ffffff;
+      --ink: #1a2333;
+      --blue: #1b46ff;
+      --accent: #0d3b8c;
+      --banner-bg: #dce8f8;
+      --banner-text: #0d3b8c;
+      --header-bg: #0d3b8c;
+      --header-text: #ffffff;
+      --btn-bg: #f0f4f8;
+      --btn-border: #b0bec5;
+      --btn-hover: #e2ecf6;
+      --shadow: 0 2px 16px rgba(13,59,140,0.10);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: #dce8f8;
+    }
+    .page {
+      width: min(1380px, calc(100vw - 32px));
+      margin: 18px auto;
+      background: var(--paper);
+      padding: 18px 22px 24px;
+      box-shadow: var(--shadow);
+      border-radius: 4px;
+      border-top: 4px solid var(--accent);
+    }
+
+    /* ── HEADER BAND ─────────────────────────────────────── */
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+      gap: 16px;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 10px;
+    }
+    .logo-area {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .logo-area img {
+      height: 46px;
+      width: auto;
+      display: block;
+    }
+    .logo-placeholder {
+      height: 46px;
+      width: 140px;
+      background: #e8edf5;
+      border: 1.5px dashed #b0bec5;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #8097b1;
+      font-style: italic;
+      letter-spacing: 0.02em;
+    }
+    .page-title-area {
+      flex: 1 1 auto;
+      text-align: center;
+    }
+    h1 {
+      font-size: 18px;
+      margin: 0;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .toolbar {
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .action-btn {
+      border: 1px solid var(--btn-border);
+      background: var(--btn-bg);
+      border-radius: 5px;
+      padding: 6px 13px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--accent);
+      transition: background 0.15s, border-color 0.15s;
+      white-space: nowrap;
+    }
+    .action-btn:hover { background: var(--btn-hover); border-color: var(--accent); }
+    .action-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .action-btn.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .action-btn.primary:hover { background: #0a2f70; }
+
+    /* ── TABLE ───────────────────────────────────────────── */
+    .section-banner {
+      background: var(--banner-bg);
+      color: var(--banner-text);
+      font-weight: 700;
+      text-align: left;
+      padding: 5px 10px !important;
+      font-size: 12px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .hint {
+      color: #5b6470;
+      font-size: 12px;
+      margin-top: 6px;
+    }
+    table.flow-sheet {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12.5px;
+    }
+    .flow-sheet td, .flow-sheet th {
+      border: 1px solid var(--line);
+      padding: 3px 6px;
+      height: 26px;
+      vertical-align: middle;
+    }
+    .flow-sheet .no-border {
+      border: none !important;
+      background: transparent !important;
+    }
+    .flow-sheet .label {
+      width: 240px;
+      text-align: right;
+      border-left: none;
+      background: white;
+      font-size: 12px;
+      color: #3a4a5c;
+    }
+    .flow-sheet .label.section-top {
+      border-top: 2px solid var(--line-strong);
+    }
+    .flow-sheet .header-cell {
+      text-align: center;
+      font-weight: 700;
+      border-top: none;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      border-bottom: 2px solid var(--line-strong);
+      background: var(--header-bg);
+      color: var(--header-text);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+    }
+    .flow-sheet .subhead-total { background: #1a5cb8; }
+    .flow-sheet .input  { background: var(--yellow); }
+    .flow-sheet .calc   { background: var(--gray); }
+
+    /* Read-only top row — gray background, italic text */
+    .flow-sheet .readonly-top {
+      background: var(--gray);
+      font-size: 12px;
+      color: #3a4a5c;
+    }
+
+    .flow-sheet .center { text-align: center; }
+    .flow-sheet .unit {
+      width: 48px;
+      text-align: left;
+      border-left: none;
+      border-right: none;
+      background: white;
+      padding-left: 4px;
+      font-size: 11px;
+      color: #5b6470;
+    }
+    .flow-sheet .note-inline {
+      width: 112px;
+      border-left: none;
+      border-right: none;
+      background: white;
+      font-style: italic;
+      font-size: 11px;
+      color: #7a8fa6;
+    }
+    .flow-sheet input {
+      width: 100%;
+      border: none;
+      outline: none;
+      background: transparent;
+      font: inherit;
+      color: inherit;
+      padding: 0;
+    }
+    .calc-readout {
+      width: 100%;
+      min-height: 18px;
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .top-lines { border-top: 1px solid var(--line); }
+
+    /* ── BOTTOM SECTION ──────────────────────────────────── */
+    .bottom-flex {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 14px;
+      align-items: start;
+      margin-top: 10px;
+    }
+    .notes {
+      font-size: 11px;
+      line-height: 1.45;
+      padding-top: 10px;
+      color: #3a4a5c;
+    }
+    .notes h3 {
+      font-size: 12px;
+      margin: 0 0 5px;
+      font-weight: 700;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .notes p { margin: 3px 0; }
+    .notes .formula {
+      font-weight: 700;
+      font-family: 'Courier New', monospace;
+      background: #f0f4f8;
+      padding: 2px 5px;
+      border-radius: 3px;
+      display: inline-block;
+      margin: 2px 0;
+    }
+    .disclaimer {
+      margin-top: 7px;
+      font-size: 10px;
+      font-style: italic;
+      border-top: 1px solid #b0bec5;
+      padding-top: 5px;
+      color: #5b6470;
+    }
+    .chart-card {
+      border: 1px solid var(--line-strong);
+      padding: 7px 8px 3px;
+      min-height: 270px;
+      background: #f8fafd;
+      border-radius: 3px;
+    }
+    svg {
+      width: 100%;
+      height: 225px;
+      display: block;
+    }
+    .foot {
+      text-align: center;
+      font-size: 11px;
+      color: #8097b1;
+      margin-top: 16px;
+      letter-spacing: 0.04em;
+    }
+
+    /* ── POPUP ───────────────────────────────────────────── */
+    #submitPopup {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(13,59,140,0.25);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #submitPopup .popup-inner {
+      background: #fff;
+      width: min(420px, 100%);
+      border-radius: 8px;
+      box-shadow: 0 14px 40px rgba(0,0,0,.2);
+      overflow: hidden;
+      border-top: 3px solid var(--accent);
+    }
+    #submitPopupHeader {
+      padding: 11px 16px;
+      font-weight: 700;
+      background: var(--banner-bg);
+      color: var(--banner-text);
+      font-size: 13px;
+      letter-spacing: 0.03em;
+    }
+    #submitPopupMessage {
+      padding: 16px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      color: #1a2333;
+    }
+
+    /* ── PRINT ───────────────────────────────────────────── */
+    @media print {
+      @page { size: letter portrait; margin: 0.28in; }
+      body { background: white; }
+      .page {
+        width: 100%; margin: 0;
+        box-shadow: none;
+        padding: 6px 8px 8px;
+        border-radius: 0;
+        border-top: 3px solid var(--accent);
+      }
+      .toolbar { display: none; }
+      .page-header { margin-bottom: 8px; padding-bottom: 6px; }
+      .logo-area img { height: 36px; }
+      .logo-placeholder { height: 36px; width: 110px; }
+      h1 { font-size: 15px; }
+      table.flow-sheet { font-size: 11px; }
+      .flow-sheet td, .flow-sheet th { padding: 2px 5px; height: 22px; }
+      .flow-sheet .label { width: 200px; font-size: 11px; }
+      .flow-sheet .unit { width: 40px; }
+      .flow-sheet .note-inline { width: 90px; }
+      .bottom-flex {
+        grid-template-columns: 215px 1fr;
+        gap: 10px;
+        margin-top: 6px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .notes { font-size: 9.5px; line-height: 1.28; padding-top: 2px; }
+      .notes h3 { font-size: 10px; margin-bottom: 3px; }
+      .notes p { margin: 2px 0; }
+      .chart-card { min-height: 205px; padding: 4px 6px 2px; }
+      svg { height: 182px; }
+      .disclaimer { margin-top: 5px; font-size: 9px; }
+      .foot { margin-top: 8px; font-size: 9px; }
+      #submitStatus { display: none; }
+    }
+    @media (max-width: 1050px) {
+      .page { width: calc(100vw - 12px); padding: 10px; }
+      .bottom-flex { grid-template-columns: 1fr; }
+      .flow-sheet { font-size: 12px; }
+      .flow-sheet .label { width: 170px; }
+      .page-header { flex-wrap: wrap; }
+    }
+  </style>
+
+  <!-- ── EmailJS SDK ────────────────────────────────────────────────────────── -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+
+</head>
+<body>
+  <div class="page">
+
+    <!-- ── PAGE HEADER ─────────────────────────── -->
+    <div class="page-header">
+      <div class="logo-area">
+        <img src="logo.png" alt="City of Stillwater">
+      </div>
+      <div class="page-title-area">
+        <h1>Hydrant Flow Test Summary Form</h1>
+      </div>
+      <div class="toolbar">
+        <button class="action-btn" type="button" id="resetBtn" style="display:none;">Reset</button>
+        <button class="action-btn" type="button" id="printBtn">Print / Email</button>
+        <button class="action-btn primary" type="button" id="submitBtn">Submit to Database</button>
+      </div>
+    </div>
+
+    <table class="flow-sheet" id="flowSheet"></table>
+
+    <div id="submitStatus" class="hint" style="margin:8px 0 0;"></div>
+
+    <div class="bottom-flex">
+      <div class="notes">
+        <h3>Notes</h3>
+        <p>1. Flow was calculated using:</p>
+        <p class="formula">Q<sub>c</sub> = (29.83)(C<sub>d</sub>)(D)<sup>2</sup>(P)<sup>½</sup></p>
+        <p>C<sub>d</sub> = Coefficient of discharge.</p>
+        <p>D = Internal orifice or nozzle diameter (IN).</p>
+        <p>P = Velocity pressure measured with pitot tube (PSI).</p>
+        <p style="margin-top:8px;">2. Flow across the available range of residual pressures was projected using:</p>
+        <p class="formula">Q<sub>p</sub> = Q<sub>c</sub> × [(P<sub>s</sub>−P<sub>x</sub>)/(P<sub>s</sub>−P<sub>r</sub>)]<sup>0.54</sup></p>
+        <p>Q<sub>c</sub> = flow calculated during test (GPM)</p>
+        <p>P<sub>s</sub> = static pressure during test (PSI)</p>
+        <p>P<sub>r</sub> = residual pressure during test (PSI)</p>
+        <p>P<sub>x</sub> = residual pressure at which to predict flow</p>
+      </div>
+
+      <div>
+        <div class="chart-card">
+          <svg id="chartSvg" viewBox="0 0 820 225" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="disclaimer">
+          These test results represent the condition of the distribution system at the location, date, and time listed. They do not necessarily represent the capacity of the system at any specific design condition. Actual system performance can vary seasonally, diurnally, and as the system grows. Please contact the City of Stillwater for additional information regarding distribution system performance under specific design conditions.
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">Hydrant Flow Test Website</div>
+  </div>
+
+  <!-- ── SUBMIT POPUP ───────────────────────────── -->
+  <div id="submitPopup">
+    <div class="popup-inner">
+      <div id="submitPopupHeader">Submission Status</div>
+      <div id="submitPopupMessage"></div>
+      <div style="padding:0 16px 14px; text-align:right;">
+        <button type="button" id="submitPopupOkBtn" class="action-btn primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ── EmailJS config + init ──────────────────────────────────────────────────
+    const EMAILJS_PUBLIC_KEY  = "y12XW0cJp4pIeig2Z";
+    const EMAILJS_SERVICE_ID  = "service_0l0o0ad";
+    const EMAILJS_TEMPLATE_ID = "template_ye5fras";
+    emailjs.init({ publicKey: EMAILJS_PUBLIC_KEY });
+
+    // ── AGOL config ────────────────────────────────────────────────────────────
+    const AGOL_LAYER_URL = new URLSearchParams(window.location.search).get("layer_url")
+      || "https://services.arcgis.com/RPfJX2yEEVtopacQ/arcgis/rest/services/HydrantFlowTestRequests/FeatureServer/0";
+
+    // ── Blank defaults factory ─────────────────────────────────────────────────
+    function createBlankDefaults() {
+      return {
+        project: "", testDate: "", testTime: "", testDateTime: "",
+        conductedBy: "",
+        submittedAt: "",          // populated from ops_submitted_at on load
+        residual: { location: "", id: "", staticPressure: "", residualPressure: "" },
+        flowHydrants: [
+          { location: "", id: "", pitot: "" },
+          { location: "", id: "", pitot: "" },
+          { location: "", id: "", pitot: "" }
+        ]
+      };
+    }
+
+    let defaultsData = createBlankDefaults();
+    let currentFeatureInfo = { objectIdFieldName: "OBJECTID", objectId: null, jobId: null };
+
+    function getJobIdFromUrl() {
+      return new URLSearchParams(window.location.search).get("job_id");
+    }
+
+    // ── Load from AGOL ─────────────────────────────────────────────────────────
+    async function loadDefaultsFromAgol() {
+      const jobId = getJobIdFromUrl();
+      currentFeatureInfo.jobId = jobId || null;
+      if (!jobId) { console.warn("No job_id in URL. Using blank defaults."); return createBlankDefaults(); }
+      if (!AGOL_LAYER_URL || AGOL_LAYER_URL.includes("REPLACE_WITH_YOUR_AGOL_FEATURESERVER_URL")) {
+        console.warn("AGOL layer URL not set."); return createBlankDefaults();
+      }
+      const where    = `job_id='${jobId.replace(/'/g,"''")}'`;
+      const queryUrl = `${AGOL_LAYER_URL}/query?where=${encodeURIComponent(where)}&outFields=*&returnGeometry=false&f=json`;
+      try {
+        const resp = await fetch(queryUrl);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+        if (!data.features || !data.features.length) { console.warn("No record found."); return createBlankDefaults(); }
+
+        const r = data.features[0].attributes || {};
+        currentFeatureInfo.objectIdFieldName = data.objectIdFieldName || "OBJECTID";
+        currentFeatureInfo.objectId = r[currentFeatureInfo.objectIdFieldName] ?? r.OBJECTID ?? null;
+
+        // Convert ops_submitted_at (Unix ms timestamp) → human-readable string.
+        // If field is null / never submitted, leave blank.
+        const rawTs    = r.ops_submitted_at ?? null;
+        const submittedAt = rawTs ? new Date(rawTs).toLocaleString() : "";
+
+        return {
+          project:      r.project      || "",
+          testDate:     "",
+          testTime:     "",
+          testDateTime: "",
+          conductedBy:  r.ConductedBy  || "",   // ← read ConductedBy back from table
+          submittedAt,                           // ← read ops_submitted_at back from table
+          residual: {
+            location:         r.res_location         || "",
+            id:               r.res_id               || "",
+            staticPressure:   r.res_static_pressure  ?? r.measured_static_pressure  ?? "",
+            residualPressure: r.res_residual_pressure ?? r.measured_residual_pressure ?? ""
+          },
+          flowHydrants: [
+            { location: r.flow1_location || "", id: r.flow1_id || "", pitot: r.flow1_pitot ?? r.flow1_pitot_reading ?? "" },
+            { location: r.flow2_location || "", id: r.flow2_id || "", pitot: r.flow2_pitot ?? r.flow2_pitot_reading ?? "" },
+            { location: r.flow3_location || "", id: r.flow3_id || "", pitot: r.flow3_pitot ?? r.flow3_pitot_reading ?? "" }
+          ]
+        };
+      } catch (e) { console.error("AGOL load failed:", e); return createBlankDefaults(); }
+    }
+
+    // ── App state ──────────────────────────────────────────────────────────────
+    const state = {
+      flowCount: 1,
+      project: "", testDate: "", testTime: "", testDateTime: "",
+      conductedBy: "",
+      submittedAt: "",          // shown in read-only "Last Submitted At" row
+      residual: { location: "", id: "", elevation: "", staticPressure: "", residualPressure: "" },
+      flowHydrants: [
+        { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" },
+        { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" },
+        { location: "", id: "", elevation: "", coefficient: "0.9", diameter: "2.5", pitot: "" }
+      ]
+    };
+
+    function getAutoFlowCount(fh) {
+      const n = (fh || []).filter(h => h && (String(h.location||"").trim() || String(h.id||"").trim())).length;
+      return Math.max(1, Math.min(3, n || 1));
+    }
+
+    function applyDefaults() {
+      state.project      = defaultsData.project      || "";
+      state.testDate     = defaultsData.testDate     || "";
+      state.testTime     = defaultsData.testTime     || "";
+      state.testDateTime = defaultsData.testDateTime || "";
+      if (!state.testDate && state.testDateTime && state.testDateTime.includes("T")) {
+        const p = state.testDateTime.split("T");
+        state.testDate = p[0] || ""; state.testTime = p[1] || "";
+      }
+      state.conductedBy = defaultsData.conductedBy || "";
+      state.submittedAt = defaultsData.submittedAt || "";  // ← apply submittedAt to state
+      state.residual.location         = defaultsData.residual?.location         || "";
+      state.residual.id               = defaultsData.residual?.id               || "";
+      state.residual.staticPressure   = defaultsData.residual?.staticPressure   || "";
+      state.residual.residualPressure = defaultsData.residual?.residualPressure || "";
+      state.residual.elevation        = lookupElevation(state.residual.id);
+      state.flowHydrants.forEach((h, i) => {
+        const d = defaultsData.flowHydrants?.[i] || {};
+        h.location  = d.location || "";
+        h.id        = d.id       || "";
+        h.pitot     = d.pitot    || "";
+        h.elevation = lookupElevation(h.id);
+      });
+      state.flowCount = getAutoFlowCount(defaultsData.flowHydrants);
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    const sheet = document.getElementById("flowSheet");
+    function num(v) { const n = parseFloat(v); return Number.isFinite(n) ? n : null; }
+    function fmt(v, digits=2) {
+      if (v===null||v===undefined||Number.isNaN(v)) return "";
+      return Number(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:digits});
+    }
+    function esc(v) {
+      return String(v??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+    }
+    function bindToId(path) { return `fld_${String(path).replace(/[^a-zA-Z0-9]+/g,"_")}`; }
+
+    function lookupElevation(id) {
+      const key = String(id||"").trim();
+      if (!key) return "";
+      if (typeof ELEVATIONS === "undefined") return "N/A";
+      const val = ELEVATIONS[key];
+      if (val===undefined||val===null) return "Not Found";
+      return fmt(val,2);
+    }
+
+    // ── Calculations ───────────────────────────────────────────────────────────
+    function calcFlow(h) {
+      const c=num(h.coefficient), d=num(h.diameter), p=num(h.pitot);
+      if (c===null||d===null||p===null||p<0) return null;
+      return (29.83*c)*(d**2)*Math.sqrt(p);
+    }
+    function totalCalculatedFlow() {
+      let sum=0, any=false;
+      for (let i=0;i<state.flowCount;i++) { const f=calcFlow(state.flowHydrants[i]); if(f!==null){sum+=f;any=true;} }
+      return any?sum:0;
+    }
+    function projectedFlow(px) {
+      const total=totalCalculatedFlow(), ps=num(state.residual.staticPressure), pr=num(state.residual.residualPressure);
+      if (ps===null||pr===null||ps<=pr) return null;
+      const ratio=(ps-px)/(ps-pr);
+      return ratio<0?null:total*(ratio**0.54);
+    }
+    function residualHGL(pressure) {
+      const elev=num(state.residual.elevation), p=num(pressure);
+      return (elev===null||p===null)?null:elev+p*2.31;
+    }
+    function staticHGL()       { return residualHGL(state.residual.staticPressure); }
+    function testResidualHGL() { return residualHGL(state.residual.residualPressure); }
+    function chartPoints() {
+      const ps=num(state.residual.staticPressure), pr=num(state.residual.residualPressure);
+      const total=totalCalculatedFlow(), elev=num(state.residual.elevation);
+      if (ps===null||pr===null||elev===null||ps<=pr) return [];
+      const step=ps/9, pts=[];
+      for (let i=0;i<=9;i++) {
+        const r=step*i, ratio=(ps-r)/(ps-pr);
+        const flow=total*(ratio**0.54), hgl=elev+r*2.31;
+        if (Number.isFinite(flow)&&Number.isFinite(hgl)) pts.push({residual:r,flow,hgl});
+      }
+      return pts;
+    }
+
+    // ── HTML builders ──────────────────────────────────────────────────────────
+    function inputCell(value, onInput, className="input center", type="text") {
+      let inputType=type, extra='';
+      if (type==="text")             extra=' inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false"';
+      else if (type==="number")      extra=' step="any"';
+      else if (type==="numericText") { inputType="text"; extra=' inputmode="decimal" autocapitalize="off" autocomplete="off" spellcheck="false"'; }
+      return `<td class="${className}"><input id="${bindToId(onInput)}" type="${inputType}" value="${esc(value)}" data-bind="${onInput}"${extra}></td>`;
+    }
+    function calcCell(value, className="calc center") {
+      return `<td class="${className}"><span class="calc-readout">${esc(value)}</span></td>`;
+    }
+    function unitCell(text)   { return `<td class="unit">${esc(text||"")}</td>`; }
+    function inlineNote(text) { return `<td class="note-inline">${esc(text||"")}</td>`; }
+
+    // Editable top row (yellow input cell)
+    function topRow(label, bind, value, colspan) {
+      if (bind==="testDateTime") {
+        return `<tr>
+          <td class="label no-border">${esc(label)}</td>
+          <td class="input top-lines" colspan="${colspan}">
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+              <label style="display:flex;align-items:center;gap:6px;margin:0;">
+                <span style="font-size:11px;color:#5b6470;">Date</span>
+                <input id="fld_testDate" type="date" data-bind="testDate" value="${esc(state.testDate)}">
+              </label>
+              <label style="display:flex;align-items:center;gap:6px;margin:0;">
+                <span style="font-size:11px;color:#5b6470;">Time</span>
+                <input id="fld_testTime" type="time" data-bind="testTime" value="${esc(state.testTime)}">
+              </label>
+            </div>
+          </td>
+          <td class="no-border"></td><td class="no-border"></td></tr>`;
+      }
+      return `<tr>
+        <td class="label no-border">${esc(label)}</td>
+        <td class="input top-lines" colspan="${colspan}">
+          <input id="${bindToId(bind)}" type="text" data-bind="${bind}" value="${esc(value)}"
+            inputmode="text" autocapitalize="off" autocomplete="off" spellcheck="false">
+        </td>
+        <td class="no-border"></td><td class="no-border"></td></tr>`;
+    }
+
+    // Read-only top row (gray cell — used for Last Submitted At)
+    // Shows "Not yet submitted" in muted text when value is empty.
+    function readOnlyTopRow(label, value, colspan) {
+      const inner = value
+        ? `<span style="font-style:italic;color:#3a4a5c;">${esc(value)}</span>`
+        : `<span style="font-style:italic;color:#b0bec5;">Not yet submitted</span>`;
+      return `<tr>
+        <td class="label no-border">${esc(label)}</td>
+        <td class="readonly-top top-lines" colspan="${colspan}">${inner}</td>
+        <td class="no-border"></td><td class="no-border"></td></tr>`;
+    }
+
+    // ── Render ─────────────────────────────────────────────────────────────────
+    function renderTable() {
+      const headers = ["Residual Hydrant"];
+      for (let i=1;i<=state.flowCount;i++) headers.push(`Flow Hydrant ${i}`);
+      headers.push("Total Flow");
+
+      let html = "";
+      html += `<colgroup><col style="width:240px;">`;
+      headers.forEach((h,idx) => {
+        const w = idx===headers.length-1 ? 95 : (state.flowCount===3?165:185);
+        html += `<col style="width:${w}px;">`;
+      });
+      html += `<col style="width:48px;"><col style="width:112px;"></colgroup>`;
+
+      // ── Top info rows ──────────────────────────────────────────────────────
+      html += topRow("Project:",            "project",      state.project,      headers.length);
+      html += topRow("Test Date and Time:", "testDateTime", state.testDateTime, headers.length);
+      html += topRow("Conducted By:",       "conductedBy",  state.conductedBy,  headers.length);
+
+      // Last Submitted At — read-only, sourced from ops_submitted_at in the table
+      html += readOnlyTopRow("Last Submitted At:", state.submittedAt, headers.length);
+
+      // Spacer
+      html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length+2).fill('<td class="no-border"></td>').join("")}</tr>`;
+
+      // Column headers
+      html += `<tr><td class="label section-top no-border"></td>`;
+      headers.forEach((h,idx) => {
+        html += `<th class="header-cell ${idx===headers.length-1?"subhead-total":""}">${esc(h)}</th>`;
+      });
+      html += `<td class="no-border"></td><td class="no-border"></td></tr>`;
+
+      // ── Data rows ──────────────────────────────────────────────────────────
+      const dataRow = (label, residualCell, flowCells, totalCell, unit, note) =>
+        `<tr><td class="label">${label}</td>${residualCell}${flowCells}${totalCell}${unitCell(unit)}${inlineNote(note)}</tr>`;
+
+      html += dataRow("Hydrant Location:",
+        inputCell(state.residual.location,"residual.location"),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].location,`flowHydrants.${i}.location`)).join(""),
+        calcCell("N/A"),"","");
+
+      html += dataRow("Hydrant Unique ID:",
+        inputCell(state.residual.id,"residual.id"),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].id,`flowHydrants.${i}.id`)).join(""),
+        calcCell("N/A"),"","");
+
+      html += dataRow("Hydrant Elevation:",
+        calcCell(state.residual.elevation||""),
+        Array.from({length:state.flowCount},(_,i)=>calcCell(state.flowHydrants[i].elevation||"")).join(""),
+        calcCell("N/A"),"FT","");
+
+      html += dataRow("Outlet Coefficient:",
+        calcCell(""),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].coefficient,`flowHydrants.${i}.coefficient`,"calc center")).join(""),
+        calcCell("N/A"),"","0.9 typical");
+
+      html += dataRow("Outlet Diameter:",
+        calcCell(""),
+        Array.from({length:state.flowCount},(_,i)=>inputCell(state.flowHydrants[i].diameter,`flowHydrants.${i}.diameter`,"calc center")).join(""),
+        calcCell("N/A"),"IN","2.5 IN typical");
+
+      // Operations banner
+      html += `<tr><td class="label no-border" style="height:4px;"></td><td class="section-banner" colspan="${headers.length}">Operations — fill in during the test</td><td class="no-border"></td><td class="no-border"></td></tr>`;
+
+      html += `<tr><td class="label section-top">Measured Static Pressure:</td>`;
+      html += inputCell(state.residual.staticPressure,"residual.staticPressure","input center","numericText");
+      for (let i=0;i<state.flowCount;i++) html += calcCell("");
+      html += calcCell(""); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
+
+      html += `<tr><td class="label">Measured Residual Pressure:</td>`;
+      html += inputCell(state.residual.residualPressure,"residual.residualPressure","input center","numericText");
+      for (let i=0;i<state.flowCount;i++) html += calcCell("");
+      html += calcCell(""); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
+
+      html += `<tr><td class="label">Pitot Tube Reading:</td>`;
+      html += calcCell("");
+      for (let i=0;i<state.flowCount;i++) html += inputCell(state.flowHydrants[i].pitot,`flowHydrants.${i}.pitot`,"input center","numericText");
+      html += calcCell("N/A"); html += unitCell("PSI"); html += inlineNote(""); html += `</tr>`;
+
+      // Spacer row
+      html += `<tr><td class="label no-border" style="height:10px;"></td>${Array(headers.length).fill('<td class="calc"></td>').join("")}<td class="no-border"></td><td class="no-border"></td></tr>`;
+
+      html += dataRow("Static HGL During Test:",
+        calcCell(fmt(staticHGL(),2)),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(""),"","");
+
+      html += dataRow("Residual HGL During Test:",
+        calcCell(fmt(testResidualHGL(),2)),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(""),"","");
+
+      html += dataRow("Calculated Flow During Test:",
+        calcCell(""),
+        Array.from({length:state.flowCount},(_,i)=>calcCell(fmt(calcFlow(state.flowHydrants[i]),0))).join(""),
+        calcCell(fmt(totalCalculatedFlow(),0)),"GPM","calculated");
+
+      html += dataRow("Projected Flow at 25 PSI Residual:",
+        calcCell(""),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(fmt(projectedFlow(25),0)),"GPM","calculated");
+
+      html += dataRow("Projected Flow at 20 PSI Residual:",
+        calcCell(""),
+        Array(state.flowCount).fill(calcCell("")).join(""),
+        calcCell(fmt(projectedFlow(20),0)),"GPM","calculated");
+
+      sheet.innerHTML = html;
+      bindInputs();
+      renderChart();
+    }
+
+    function bindInputs() {
+      sheet.querySelectorAll("input[data-bind]").forEach(input => {
+        input.addEventListener("input", e => {
+          const path=e.target.dataset.bind, value=e.target.value;
+          const ss=e.target.selectionStart, se=e.target.selectionEnd, sd=e.target.selectionDirection;
+          setStateValue(path, value);
+          if (path==="testDate"||path==="testTime")
+            state.testDateTime=[state.testDate||"",state.testTime||""].filter(Boolean).join("T");
+          if (path==="residual.id") state.residual.elevation=lookupElevation(value);
+          const fm=path.match(/^flowHydrants\.(\d+)\.id$/);
+          if (fm) state.flowHydrants[Number(fm[1])].elevation=lookupElevation(value);
+          renderTable();
+          const r=sheet.querySelector(`input[data-bind="${path}"]`);
+          if (r) { r.focus(); try{r.setSelectionRange(ss,se,sd||"none");}catch(err){} }
+        });
+      });
+    }
+
+    function setStateValue(path, value) {
+      const keys=path.split(".");
+      let ref=state;
+      for (let i=0;i<keys.length-1;i++) ref=ref[keys[i]];
+      ref[keys[keys.length-1]]=value;
+    }
+
+    // ── Chart ──────────────────────────────────────────────────────────────────
+    function renderChart() {
+      const svg=document.getElementById("chartSvg");
+      const pts=chartPoints();
+      const W=820,H=225;
+      const m={top:14,right:70,bottom:40,left:68};
+      const plotW=W-m.left-m.right, plotH=H-m.top-m.bottom;
+
+      const maxFlow    =Math.max(10,...pts.map(p=>p.flow||0));
+      const maxResidual=Math.max(10,...pts.map(p=>p.residual||0));
+      const minHgl=pts.length?Math.min(...pts.map(p=>p.hgl)):850;
+      const maxHgl=pts.length?Math.max(...pts.map(p=>p.hgl)):1750;
+
+      const x =v=>m.left+(v/maxFlow)*plotW;
+      const yL=v=>m.top+plotH-(v/maxResidual)*plotH;
+      const yR=v=>{ const span=Math.max(1,maxHgl-minHgl); return m.top+plotH-((v-minHgl)/span)*plotH; };
+
+      let out="";
+      out+=`<rect x="0" y="0" width="${W}" height="${H}" fill="#f8fafd"/>`;
+      for (let i=0;i<=5;i++) {
+        const xv=(maxFlow/5)*i, xx=x(xv);
+        out+=`<line x1="${xx}" y1="${m.top}" x2="${xx}" y2="${m.top+plotH}" stroke="#d0d8e4" stroke-dasharray="3,3" stroke-width="1"/>`;
+        out+=`<text x="${xx}" y="${m.top+plotH+16}" font-size="10.5" text-anchor="middle" fill="#3a4a5c">${fmt(xv,0)}</text>`;
+      }
+      for (let i=0;i<=2;i++) {
+        const rv=(maxResidual/2)*i, yy=yL(rv);
+        out+=`<line x1="${m.left}" y1="${yy}" x2="${m.left+plotW}" y2="${yy}" stroke="#d0d8e4" stroke-width="1"/>`;
+        out+=`<text x="${m.left-8}" y="${yy+4}" font-size="10.5" text-anchor="end" fill="#3a4a5c">${fmt(rv,0)}</text>`;
+      }
+      for (let i=0;i<=9;i++) {
+        const h=minHgl+((maxHgl-minHgl)/9)*i, yy=yR(h);
+        out+=`<text x="${m.left+plotW+8}" y="${yy+4}" font-size="10.5" fill="#1b46ff">${fmt(h,0)}</text>`;
+      }
+      out+=`<line x1="${m.left}" y1="${m.top}" x2="${m.left}" y2="${m.top+plotH}" stroke="${state.residual.elevation?"#3a4a5c":"#b0b8c4"}" stroke-width="1.5"/>`;
+      out+=`<line x1="${m.left}" y1="${m.top+plotH}" x2="${m.left+plotW}" y2="${m.top+plotH}" stroke="#3a4a5c" stroke-width="1.5"/>`;
+      out+=`<line x1="${m.left+plotW}" y1="${m.top}" x2="${m.left+plotW}" y2="${m.top+plotH}" stroke="#1b46ff" stroke-width="1.5"/>`;
+
+      if (pts.length) {
+        let pathR="", pathH="";
+        pts.forEach((p,idx)=>{
+          const cx=x(p.flow), cy1=yL(p.residual), cy2=yR(p.hgl);
+          pathR+=`${idx?"L":"M"}${cx},${cy1} `;
+          pathH+=`${idx?"L":"M"}${cx},${cy2} `;
+        });
+        const firstX=x(pts[0].flow), lastX=x(pts[pts.length-1].flow);
+        out+=`<path d="${pathH.trim()} L${lastX},${m.top+plotH} L${firstX},${m.top+plotH} Z" fill="rgba(27,70,255,0.07)"/>`;
+        out+=`<path d="${pathH.trim()}" fill="none" stroke="#1b46ff" stroke-width="2"/>`;
+        out+=`<path d="${pathR.trim()}" fill="none" stroke="#0d3b8c" stroke-width="2" stroke-dasharray="0"/>`;
+        const testFlow=totalCalculatedFlow(), testRes=num(state.residual.residualPressure);
+        if (testFlow!==null&&testRes!==null&&Number.isFinite(testFlow)&&Number.isFinite(testRes)) {
+          out+=`<circle cx="${x(testFlow)}" cy="${yL(testRes)}" r="6" fill="#0d3b8c" stroke="#fff" stroke-width="2"/>`;
+        }
+        const flow20=projectedFlow(20);
+        if (flow20!==null&&Number.isFinite(flow20)) {
+          out+=`<circle cx="${x(flow20)}" cy="${yL(20)}" r="6" fill="white" stroke="#1b46ff" stroke-width="2"/>`;
+        }
+      } else {
+        out+=`<text x="${W/2}" y="${H/2+4}" font-size="12" text-anchor="middle" fill="#8097b1" font-style="italic">Enter values to display chart</text>`;
+      }
+
+      out+=`<text x="${W/2}" y="${H-4}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#3a4a5c">Hydrant Flow (GPM)</text>`;
+      out+=`<text x="14" y="${H/2}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#3a4a5c" transform="rotate(-90 14 ${H/2})">Residual Pressure (PSI)</text>`;
+      out+=`<text x="${W-10}" y="${H/2}" font-size="11.5" font-weight="700" text-anchor="middle" fill="#1b46ff" transform="rotate(90 ${W-10} ${H/2})">Residual HGL (FT)</text>`;
+
+      svg.innerHTML=out;
+    }
+
+    // ── Submit popup helpers ───────────────────────────────────────────────────
+    function showSubmitPopup(msg, isError=false) {
+      const popup=document.getElementById("submitPopup");
+      const header=document.getElementById("submitPopupHeader");
+      const body=document.getElementById("submitPopupMessage");
+      if (!popup||!header||!body) return;
+      header.textContent=isError?"Submission Failed":"Submission Status";
+      header.style.background=isError?"#fdecec":"#dce8f8";
+      header.style.color    =isError?"#b42318":"#0d3b8c";
+      body.textContent=msg||"";
+      body.style.color=isError?"#b42318":"#1a2333";
+      popup.style.display="flex";
+    }
+    function closeSubmitPopup() { document.getElementById("submitPopup").style.display="none"; }
+
+    function setSubmitStatus(msg, isError=false) {
+      const el=document.getElementById("submitStatus");
+      if (!el) return;
+      el.textContent=msg||"";
+      el.style.color=isError?"#b42318":"#5b6470";
+    }
+
+    function toNullableNumber(v) {
+      if (v===null||v===undefined) return null;
+      const s=String(v).trim();
+      if (!s) return null;
+      const n=Number(s);
+      return Number.isFinite(n)?n:NaN;
+    }
+
+    function validateSubmission() {
+      const errs=[];
+      const sp=toNullableNumber(state.residual.staticPressure);
+      const rp=toNullableNumber(state.residual.residualPressure);
+      if (String(state.residual.staticPressure??"").trim()==="") errs.push("Measured Static Pressure is required.");
+      else if (Number.isNaN(sp)) errs.push("Measured Static Pressure must be numeric.");
+      if (String(state.residual.residualPressure??"").trim()==="") errs.push("Measured Residual Pressure is required.");
+      else if (Number.isNaN(rp)) errs.push("Measured Residual Pressure must be numeric.");
+      for (let i=0;i<state.flowCount;i++) {
+        const raw=String(state.flowHydrants[i]?.pitot??"").trim();
+        const p=toNullableNumber(state.flowHydrants[i]?.pitot);
+        if (!raw) errs.push(`Pitot Tube Reading for Flow Hydrant ${i+1} is required.`);
+        else if (Number.isNaN(p)) errs.push(`Pitot Tube Reading for Flow Hydrant ${i+1} must be numeric.`);
+      }
+      return errs;
+    }
+
+    // ── Build AGOL update payload ──────────────────────────────────────────────
+    function getUpdateAttributes() {
+      const attrs = {};
+      const oid = currentFeatureInfo.objectIdFieldName || "OBJECTID";
+      attrs[oid]                  = currentFeatureInfo.objectId;
+      attrs.res_static_pressure   = toNullableNumber(state.residual.staticPressure);
+      attrs.res_residual_pressure = toNullableNumber(state.residual.residualPressure);
+      attrs.flow1_pitot           = toNullableNumber(state.flowHydrants[0]?.pitot);
+      attrs.flow2_pitot           = toNullableNumber(state.flowHydrants[1]?.pitot);
+      attrs.flow3_pitot           = toNullableNumber(state.flowHydrants[2]?.pitot);
+      attrs.ops_submitted_at      = Date.now();                   // Unix ms → stored in table
+      attrs.ops_submit_status     = "Submitted";
+      attrs.ConductedBy           = state.conductedBy || null;    // ← send ConductedBy to table
+      return attrs;
+    }
+
+    // ── Main submit function ───────────────────────────────────────────────────
+    async function submitToAgol() {
+      const btn   = document.getElementById("submitBtn");
+      const jobId = getJobIdFromUrl();
+
+      if (!jobId) {
+        const m="Missing job_id in URL."; setSubmitStatus(m,true); showSubmitPopup(m,true); return;
+      }
+      if (currentFeatureInfo.objectId===null||currentFeatureInfo.objectId===undefined) {
+        const m="Could not find matching record ObjectID. Refresh and try again.";
+        setSubmitStatus(m,true); showSubmitPopup(m,true); return;
+      }
+      const errs=validateSubmission();
+      if (errs.length) { const m=errs.join(" "); setSubmitStatus(m,true); showSubmitPopup(m,true); return; }
+
+      const payload=new URLSearchParams();
+      payload.set("f","json");
+      payload.set("features",JSON.stringify([{attributes:getUpdateAttributes()}]));
+
+      try {
+        btn.disabled=true; setSubmitStatus("Submitting...");
+        const resp=await fetch(`${AGOL_LAYER_URL}/updateFeatures`,{
+          method:"POST",
+          headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"},
+          body:payload.toString()
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const result=await resp.json();
+        const edit=result.updateResults&&result.updateResults[0];
+        if (!edit||edit.success!==true) {
+          const e=edit&&edit.error
+            ?`${edit.error.code||""} ${edit.error.description||"Unknown error."}`.trim()
+            :"Unknown error.";
+          throw new Error(e);
+        }
+
+        // Capture exact submission time as a readable string
+        const nowString = new Date().toLocaleString();
+
+        // Update state so the read-only "Last Submitted At" row refreshes
+        // immediately — no page reload needed
+        state.submittedAt = nowString;
+
+        const m=`Submitted successfully for job_id ${jobId}.`;
+        setSubmitStatus(m); showSubmitPopup(m,false);
+
+        // Re-render table so the updated timestamp appears right away
+        renderTable();
+
+        // ── Send email notification via EmailJS ──────────────────────────────
+        try {
+          await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+            job_id:            jobId,
+            project:           state.project                    || "(not entered)",
+            conducted_by:      state.conductedBy               || "(not entered)",
+            submitted_at:      nowString,
+            static_pressure:   state.residual.staticPressure   || "—",
+            residual_pressure: state.residual.residualPressure || "—",
+            flow1_pitot:       state.flowHydrants[0]?.pitot    || "—",
+            flow2_pitot:       state.flowHydrants[1]?.pitot    || "—",
+            flow3_pitot:       state.flowHydrants[2]?.pitot    || "—",
+            form_url:          window.location.href,
+          });
+          console.log("Email notification sent.");
+        } catch (emailErr) {
+          console.warn("Email send failed (data still saved):", emailErr);
+        }
+        // ── End EmailJS ────────────────────────────────────────────────────────
+
+      } catch(e) {
+        const m=`Submit failed. ${e.message}`; setSubmitStatus(m,true); showSubmitPopup(m,true);
+      } finally { btn.disabled=false; }
+    }
+
+    function resetState() {
+      state.project=""; state.testDate=""; state.testTime=""; state.testDateTime="";
+      state.conductedBy=""; state.submittedAt="";
+      state.residual={location:"",id:"",elevation:"",staticPressure:"",residualPressure:""};
+      state.flowHydrants=[
+        {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""},
+        {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""},
+        {location:"",id:"",elevation:"",coefficient:"0.9",diameter:"2.5",pitot:""}
+      ];
+      state.flowCount=1;
+      applyDefaults(); renderTable();
+    }
+
+    // ── Event listeners ────────────────────────────────────────────────────────
+    document.getElementById("printBtn").addEventListener("click",()=>window.print());
+    document.getElementById("resetBtn").addEventListener("click",()=>resetState());
+    document.getElementById("submitBtn").addEventListener("click",()=>submitToAgol());
+    document.getElementById("submitPopupOkBtn").addEventListener("click",closeSubmitPopup);
+    document.getElementById("submitPopup").addEventListener("click",e=>{
+      if(e.target.id==="submitPopup") closeSubmitPopup();
+    });
+
+    async function initApp() {
+      defaultsData=await loadDefaultsFromAgol();
+      applyDefaults(); renderTable();
+    }
+    initApp();
+  </script>
+</body>
+</html>
